@@ -53,24 +53,26 @@
       </div>
     </section>
 
-    <section id="stepBooth" class="step-card">
-      <div class="booth-layout">
+  <div id="stepBooth" class="step-view">
+  <div class="booth-layout">
+    
+    <div class="camera-box">
+      <div class="preview-container" id="previewContainer">
+        <video id="videoFeed" autoplay playsinline class="filter-normal"></video>
         
-        <div class="camera-wrapper">
-          <span class="status-indicator live">LIVE</span>
-          <video id="videoFeed" autoplay playsinline muted class="filter-normal"></video>
-          <div id="countdownDisplay" class="countdown-display"></div>
-          
-          <div class="camera-floating-actions">
-            <button id="btnSwitchCam" class="btn-circle sub" title="Ganti Kamera">🔄</button>
-            <button id="btnTriggerPhoto" class="btn-circle main" title="Ambil Foto">📸</button>
-            <select id="selectTimer" class="dropdown-timer">
-              <option value="3">⏱️ 3s</option>
-              <option value="5" selected>⏱️ 5s</option>
-              <option value="10">⏱️ 10s</option>
-            </select>
-          </div>
-        </div>
+        <div id="frameOverlay" class="live-frame-overlay" data-active-theme="plain-white"></div>
+        
+        <div id="flashOverlay"></div>
+        
+        <div id="countdownDisplay" style="display: none;">5</div>
+      </div>
+    </div>
+
+    <div class="booth-sidebar">
+      </div>
+
+  </div>
+</div>
 
      <div class="sidebar-block">
             <h3>🎨 Filter Real-Time</h3>

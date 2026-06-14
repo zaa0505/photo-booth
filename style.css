@@ -741,3 +741,84 @@ body {
 [data-active-theme="retro-stripes"] .strip-photo-slot {
   border: 5px solid #ffffff;
 }
+/* ==========================================================================
+   PERBAIKAN LIVE FRAME OVERLAY + INSTAGRAM FILTERS PREVIEW
+   ========================================================================== */
+
+/* Wadah utama preview kamera */
+.preview-container {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  aspect-ratio: 4/3;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #000;
+}
+
+/* Kamera full memenuhi wadah */
+#videoFeed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: filter 0.3s ease;
+}
+
+/* Bingkai transparan yang menumpuk di atas kamera aktif */
+.live-frame-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Biar gak nge-block klik */
+  box-sizing: border-box;
+  border: 20px solid transparent; /* Jarak border luar */
+  transition: all 0.3s ease;
+}
+
+/* --- Sinkronisasi Efek Live Frame pas lagi Berpose --- */
+[data-active-theme="y2k-lime"].live-frame-overlay {
+  border-color: #7cd93a !important;
+  box-shadow: inset 0 0 0 4px #ffffff;
+  /* Membuat potongan tengah kamera jadi agak oval melengkung */
+  border-radius: 40px; 
+}
+[data-active-theme="y2k-lime"].live-frame-overlay::after {
+  content: '★ PREVIEW ★';
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Impact', sans-serif;
+  font-size: 16px;
+  color: #ff66b2;
+  text-shadow: 1px 1px 0px #000;
+}
+
+[data-active-theme="retro-stripes"].live-frame-overlay {
+  border-color: #eae1d4 !important;
+  background-image: repeating-linear-gradient(45deg, #bd3a2b, #bd3a2b 5px, #eae1d4 5px, #eae1d4 10px) !important;
+  box-shadow: inset 0 0 0 4px #ffffff;
+}
+
+[data-active-theme="cyber-glam"].live-frame-overlay {
+  border-color: #ffe3ec !important;
+  box-shadow: inset 0 0 0 3px rgba(255,102,178,0.4);
+}
+
+[data-active-theme="plain-white"].live-frame-overlay {
+  border-color: #ffffff !important;
+}
+
+/* ==========================================================================
+   RACIKAN CLASS FILTER INSTAGRAM (PASTIKAN ADA DAN GA HILANG)
+   ========================================================================== */
+.filter-normal { filter: none !important; }
+.filter-paris { filter: brightness(1.12) contrast(0.92) saturate(1.05) !important; }
+.filter-jakarta { filter: sepia(0.25) saturate(1.3) brightness(1.02) hue-rotate(-5deg) !important; }
+.filter-losangeles { filter: contrast(1.25) saturate(1.35) brightness(0.98) !important; }
+.filter-vintage-grain { filter: contrast(1.15) saturate(0.85) brightness(0.95) sepia(0.1) !important; }
+.filter-cyber-glitch { filter: hue-rotate(130deg) saturate(1.7) contrast(1.2) !important; }
+.filter-dreamy-cream { filter: brightness(1.06) saturate(0.9) contrast(0.95) !important; }
