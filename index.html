@@ -53,81 +53,78 @@
       </div>
     </section>
 
-<div id="stepBooth" class="step-view">
-  <div class="booth-layout">
-    
-    <div class="camera-box">
-      <video id="videoFeed" autoplay playsinline class="filter-normal"></video>
-      <div id="flashOverlay"></div>
-      <div id="countdownDisplay" style="display: none;">5</div>
-    </div>
-
-    <div class="booth-sidebar">
-      
-      <div class="sidebar-block text-center">
-        <label for="selectTimer" style="display:block; margin-bottom: 5px; font-weight: bold;">⏱️ Atur Timer:</label>
-        <select id="selectTimer" class="form-control" style="margin-bottom: 10px; width: 100%;">
-          <option value="3">3 Detik</option>
-          <option value="5" selected>5 Detik</option>
-          <option value="7">7 Detik</option>
-        </select>
+    <section id="stepBooth" class="step-card">
+      <div class="booth-layout">
         
-        <button id="btnTriggerPhoto" class="btn-shutter">
-          📸 AMBIL FOTO (<span id="currentSlotIdx">0</span>/<span id="totalSlotCount">4</span>)
-        </button>
-      </div>
-
-      <div class="sidebar-block">
-        <h3>🎨 Pilih Warna Bingkai</h3>
-        <div class="color-picker-grid">
-          <div class="color-dot active" data-color="#ffffff" style="background-color: #ffffff; border: 1px solid #ccc;"></div>
-          <div class="color-dot" data-color="#111111" style="background-color: #111111;"></div>
-          <div class="color-dot" data-color="#ffe3ec" style="background-color: #ffe3ec;"></div>
-          <div class="color-dot" data-color="#d8f3dc" style="background-color: #d8f3dc;"></div>
-          <div class="color-dot" data-color="#e0aaff" style="background-color: #e0aaff;"></div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</div>
-
-     <div class="sidebar-block">
-            <h3>🎨 Filter Real-Time</h3>
-            <div class="filter-scroll">
-              <button class="filter-btn active" data-filter="filter-normal">Normal</button>
-              <button class="filter-btn" data-filter="filter-vintage">Vintage Warm</button>
-              <button class="filter-btn" data-filter="filter-bw">B&W Noir</button>
-              <button class="filter-btn" data-filter="filter-retro">Retro Cam</button>
-              <button class="filter-btn" data-filter="filter-cyber">Cyber Neon</button>
-              <button class="filter-btn" data-filter="filter-soft">Soft Glow</button>
-            </div>
+        <div class="camera-box">
+          <div class="preview-container">
+            <video id="videoFeed" autoplay playsinline class="filter-normal"></video>
+            <div id="liveFrameOverlay" class="live-frame-overlay" data-active-theme="plain-white"></div>
+            <div id="countdownDisplay" class="countdown-display">5</div>
           </div>
-
-<div class="sidebar-block">
-            <h3>🖼️ Pilih Desain Bingkai (Template)</h3>
-            <div class="theme-gallery">
-              <button class="theme-btn active" data-theme="plain-white">🤍 Minimalist White</button>
-              <button class="theme-btn" data-theme="y2k-lime">💚 Y2K Idol Pop (Green Neon)</button>
-              <button class="theme-btn" data-theme="retro-stripes">🧡 Retro Family Room (Stripes)</button>
-              <button class="theme-btn" data-theme="cyber-glam">💖 Cyber Glam (Pink Star)</button>
-            </div>
-          </div>
-
+          
           <div class="progress-box">
             <p>Sesi Foto: <span id="currentSlotIdx">0</span>/<span id="totalSlotCount">4</span></p>
             <div class="progress-bar"><div id="progressFill" style="width: 0%"></div></div>
           </div>
         </div>
 
-      </div>
-    </section>
+        <div class="booth-sidebar">
+          
+          <div class="sidebar-block text-center">
+            <label for="selectTimer" style="display:block; margin-bottom: 8px; font-weight: bold; font-size: 0.9rem;">⏱️ Atur Timer:</label>
+            <select id="selectTimer" class="form-control" style="margin-bottom: 12px; width: 100%; padding: 8px; border-radius: 6px;">
+              <option value="3">3 Detik</option>
+              <option value="5" selected>5 Detik</option>
+              <option value="7">7 Detik</option>
+            </select>
+            
+            <button id="btnTriggerPhoto" class="btn-shutter">
+              📸 AMBIL FOTO
+            </button>
+          </div>
+
+          <div class="sidebar-block">
+            <h3>🎨 Pilihan Warna</h3>
+            <div class="color-picker-grid">
+              <div class="color-dot active" data-color="#ffffff" style="background-color: #ffffff; border: 1px solid #ccc;"></div>
+              <div class="color-dot" data-color="#111111" style="background-color: #111111;"></div>
+              <div class="color-dot" data-color="#ffe3ec" style="background-color: #ffe3ec;"></div>
+              <div class="color-dot" data-color="#d8f3dc" style="background-color: #d8f3dc;"></div>
+              <div class="color-dot" data-color="#e0aaff" style="background-color: #e0aaff;"></div>
+            </div>
+          </div>
+
+          <div class="sidebar-block">
+            <h3>🖼️ Desain Bingkai (Template)</h3>
+            <div class="theme-gallery">
+              <button class="theme-btn active" data-theme="plain-white">🤍 Minimalist White</button>
+              <button class="theme-btn" data-theme="y2k-lime">💚 Y2K Idol Pop (Green Neon)</button>
+              <button class="theme-btn" data-theme="retro-stripes">🧡 Retro Stripes (Vintage)</button>
+              <button class="theme-btn" data-theme="cyber-glam">💖 Cyber Glam (Pink Star)</button>
+            </div>
+          </div>
+
+          <div class="sidebar-block">
+            <h3>✨ Filter Real-Time</h3>
+            <div class="filter-scroll">
+              <button class="filter-btn active" data-filter="filter-normal">Normal</button>
+              <button class="filter-btn" data-filter="filter-paris">Paris (Smooth Glow)</button>
+              <button class="filter-btn" data-filter="filter-jakarta">Jakarta (Warm Gold)</button>
+              <button class="filter-btn" data-filter="filter-losangeles">Los Angeles (Analog)</button>
+              <button class="filter-btn" data-filter="filter-vintage-grain">Vintage Grain</button>
+              <button class="filter-btn" data-filter="filter-cyber-glitch">Cyber Neon Glitch</button>
+              <button class="filter-btn" data-filter="filter-dreamy-cream">Dreamy Cream</button>
+            </div>
+          </div>
+
+        </div> </div> </section>
 
     <section id="stepResult" class="step-card">
       <div class="result-layout">
         
         <div class="strip-preview-area">
-          <div id="photostripContainer" class="photostrip-canvas-mockup">
+          <div id="photostripContainer" class="photostrip-canvas-mockup" data-active-theme="plain-white">
             </div>
         </div>
 
@@ -140,9 +137,8 @@
               <button class="sticker-item" data-type="emoji">🕶️</button>
               <button class="sticker-item" data-type="emoji">🐱</button>
               <button class="sticker-item" data-type="emoji">⚡</button>
-              <button class="sticker-item" data-type="text">🏷️ +Teks</button>
             </div>
-            <p class="hint-text">*Klik stiker untuk menambahkannya ke dalam frame, lalu drag untuk memindahkan posisinya.</p>
+            <p class="hint-text">*Fitur tambahan penempelan stiker mockup dekorasi strip foto.</p>
           </div>
 
           <div class="sidebar-block">

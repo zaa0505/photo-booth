@@ -1,6 +1,6 @@
 /**
  * SnapGlow - Photobooth Core Script
- * Version: 2.12 (Final Safe Synced Edition)
+ * Version: 2.15 (Synced Live Frame & Image Capture Edition)
  */
 
 if ('serviceWorker' in navigator) {
@@ -19,6 +19,7 @@ const state = {
   currentSlotIndex: 0,
   activeFilter: 'filter-normal',
   frameBgColor: '#ffffff',
+  activeTheme: 'plain-white',
   facingMode: 'user',
   isSimulation: false
 };
@@ -33,6 +34,7 @@ function initPhotostrip() {
   if (!container) return;
   container.innerHTML = '';
   container.style.backgroundColor = state.frameBgColor;
+  container.setAttribute('data-active-theme', state.activeTheme);
   
   for (let i = 0; i < state.selectedSlots; i++) {
     const slot = document.createElement('div');
@@ -54,6 +56,7 @@ function renderMockupStrip() {
   if (!container) return;
   container.innerHTML = '';
   container.style.backgroundColor = state.frameBgColor;
+  container.setAttribute('data-active-theme', state.activeTheme);
 
   state.capturedImages.forEach(imgSrc => {
     const imgEl = document.createElement('img');
@@ -75,55 +78,74 @@ function renderMockupStrip() {
 }
 
 // ==========================================================================
-// EVENT LISTENERS UTAMA (BINGKAI, LAYOUT, FILTER)
+// SYSTEM SELECTION EVENTS (WARNA, BINGKAI TEMPLATE, FILTER)
 // ==========================================================================
-
-// FIX BINGKAI: Deteksi semua elemen klik bingkai, baik berbentuk bulat (.color-dot) maupun tombol (.theme-btn)
-function bindFrameSelection() {
-  const frameTargets = document.querySelectorAll('.color-dot, .theme-btn');
-  frameTargets.forEach(dot => {
+function bindCustomControls() {
+  // 1. Pilihan Warna Lingkaran Polos (.color-dot)
+  const colorDots = document.querySelectorAll('.color-dot');
+  colorDots.forEach(dot => {
     dot.addEventListener('click', () => {
-      frameTargets.forEach(d => d.classList.remove('active'));
+      colorDots.forEach(d => d.classList.remove('active'));
       dot.classList.add('active');
       
-      // Ambil data warna dari attribute data-color
       state.frameBgColor = dot.dataset.color || '#ffffff';
+      const container = document.getElementById('photostripContainer');
+      if (container) container.style.backgroundColor = state.frameBgColor;
+    });
+  });
+
+  // 2. FIX PILIHAN BINGKAI TEMPLATE (.theme-btn)
+  const themeBtns = document.querySelectorAll('.theme-btn');
+  themeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      themeBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
       
+      state.activeTheme = btn.dataset.theme || 'plain-white';
+      
+      // Sinkronkan overlay bingkai kamera pas lagi di booth
+      const liveOverlay = document.getElementById('liveFrameOverlay');
+      if (liveOverlay) {
+        liveOverlay.setAttribute('data-active-theme', state.activeTheme);
+      }
+      
+      // Sinkronkan container mockup final
       const container = document.getElementById('photostripContainer');
       if (container) {
-        container.style.backgroundColor = state.frameBgColor;
+        container.setAttribute('data-active-theme', state.activeTheme);
       }
+    });
+  });
+
+  // 3. Pilihan Filter Kamera (.filter-btn)
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      state.activeFilter = btn.dataset.filter || 'filter-normal';
+      const video = document.getElementById('videoFeed');
+      if (video) {
+        video.className = ''; 
+        video.classList.add(state.activeFilter);
+      }
+    });
+  });
+
+  // 4. Pilihan Slot Grid Layout Awal
+  document.querySelectorAll('.frame-card.option').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.frame-card.option').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+      state.selectedSlots = parseInt(card.dataset.slots) || 4;
+      initPhotostrip();
     });
   });
 }
 
-// Pilihan Jumlah Slot Layout
-document.querySelectorAll('.frame-card.option').forEach(card => {
-  card.addEventListener('click', () => {
-    document.querySelectorAll('.frame-card.option').forEach(c => c.classList.remove('active'));
-    card.classList.add('active');
-    state.selectedSlots = parseInt(card.dataset.slots) || 4;
-    initPhotostrip();
-  });
-});
-
-// Pilihan Filter Efek Instagram
-document.querySelectorAll('.filter-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    
-    state.activeFilter = btn.dataset.filter || 'filter-normal';
-    const video = document.getElementById('videoFeed');
-    if (video) {
-      video.className = ''; 
-      video.classList.add(state.activeFilter);
-    }
-  });
-});
-
 // ==========================================================================
-// ENGINE KAMERA & SHUTTER JEPRAK-JEPREK
+// ENGINE ENGINES WEBCAM
 // ==========================================================================
 async function startCamera() {
   const video = document.getElementById('videoFeed');
@@ -151,34 +173,33 @@ async function startCamera() {
   }
 }
 
-const startBtn = document.getElementById('btnStartCapture');
-if (startBtn) {
-  startBtn.addEventListener('click', async () => {
-    safeGet('stepSelection').classList.remove('active');
-    safeGet('stepBooth').classList.add('active');
-    state.capturedImages = [];
-    state.currentSlotIndex = 0;
-    
-    const totCount = document.getElementById('totalSlotCount');
-    const curIdx = document.getElementById('currentSlotIdx');
-    const prog = document.getElementById('progressFill');
-    
-    if (totCount) totCount.textContent = state.selectedSlots;
-    if (curIdx) curIdx.textContent = '0';
-    if (prog) prog.style.width = '0%';
-    
-    initPhotostrip();
-    await startCamera();
-  });
-}
+// ==========================================================================
+// SHUTTER INTERACTION CONTROLLER
+// ==========================================================================
+function initShutterEngine() {
+  const startBtn = document.getElementById('btnStartCapture');
+  if (startBtn) {
+    startBtn.addEventListener('click', async () => {
+      safeGet('stepSelection').classList.remove('active');
+      safeGet('stepBooth').classList.add('active');
+      state.capturedImages = [];
+      state.currentSlotIndex = 0;
+      
+      const totCount = document.getElementById('totalSlotCount');
+      const curIdx = document.getElementById('currentSlotIdx');
+      const prog = document.getElementById('progressFill');
+      
+      if (totCount) totCount.textContent = state.selectedSlots;
+      if (curIdx) curIdx.textContent = '0';
+      if (prog) prog.style.width = '0%';
+      
+      initPhotostrip();
+      await startCamera();
+    });
+  }
 
-// LOGIKA COUNTDOWN & SHUTTER JEPRET
-// Kita pakai gabungan deteksi ID 'btnTriggerPhoto' atau class '.btn-shutter' biar aman
-function initShutterButton() {
-  const shutterBtn = document.getElementById('btnTriggerPhoto') || document.querySelector('.btn-trigger, .shutter-btn, [id*="Trigger"]');
+  const shutterBtn = document.getElementById('btnTriggerPhoto');
   if (shutterBtn) {
-    // Pastikan tombolnya kelihatan di layar
-    shutterBtn.style.display = "block"; 
     shutterBtn.addEventListener('click', () => {
       if (state.currentSlotIndex >= state.selectedSlots) return;
       shutterBtn.disabled = true;
@@ -193,7 +214,7 @@ function runSessionCountdown() {
   let count = timerSel ? (parseInt(timerSel.value) || 5) : 5;
   
   if (cdDisplay) {
-    cdDisplay.style.display = 'block';
+    cdDisplay.style.display = 'flex';
     cdDisplay.textContent = count;
   }
 
@@ -218,7 +239,7 @@ function captureFrame() {
 
   if (state.isSimulation) {
     const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    const colors = [['#a370f7', '#3a86ff'], ['#ff0055', '#ffe3ec']];
+    const colors = [['#a370f7', '#3a86ff'], ['#ff0055', '#ffe3ec'], ['#7cd93a', '#ffffff'], ['#bd3a2b', '#eae1d4']];
     const setChoice = colors[state.currentSlotIndex % colors.length];
     gradient.addColorStop(0, setChoice[0]);
     gradient.addColorStop(1, setChoice[1]);
@@ -227,6 +248,7 @@ function captureFrame() {
   } else if (video) {
     ctx.save();
     
+    // Inject filter render kustomisasi canvas
     if (state.activeFilter === 'filter-paris') ctx.filter = 'brightness(1.12) contrast(0.92) saturate(1.05)';
     else if (state.activeFilter === 'filter-jakarta') ctx.filter = 'sepia(0.25) saturate(1.3) brightness(1.02) hue-rotate(-5deg)';
     else if (state.activeFilter === 'filter-losangeles') ctx.filter = 'contrast(1.25) saturate(1.35) brightness(0.98)';
@@ -238,17 +260,7 @@ function captureFrame() {
       ctx.translate(canvas.width, 0);
       ctx.scale(-1, 1);
     }
-    const videoW = video.videoWidth || 640;
-    const videoH = video.videoHeight || 480;
-    const targetRatio = canvas.width / canvas.height;
-    const videoRatio = videoW / videoH;
-    let sx, sy, sw, sh;
-    if (videoRatio > targetRatio) {
-      sh = videoH; sw = videoH * targetRatio; sx = (videoW - sw) / 2; sy = 0;
-    } else {
-      sw = videoW; sh = videoW / targetRatio; sx = 0; sy = (videoH - sh) / 2;
-    }
-    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     ctx.restore();
   }
 
@@ -264,10 +276,10 @@ function captureFrame() {
   const flash = document.getElementById('flashOverlay');
   if (flash) {
     flash.classList.add('active');
-    setTimeout(() => flashOverlay.classList.remove('active'), 300);
+    setTimeout(() => flash.classList.remove('active'), 300);
   }
 
-  const shutBtn = document.getElementById('btnTriggerPhoto') || document.querySelector('.btn-trigger, .shutter-btn, [id*="Trigger"]');
+  const shutBtn = document.getElementById('btnTriggerPhoto');
   if (state.currentSlotIndex < state.selectedSlots) {
     setTimeout(() => { if (shutBtn) shutBtn.disabled = false; runSessionCountdown(); }, 1500);
   } else {
@@ -286,7 +298,7 @@ function finishPhotoSession() {
 }
 
 // ==========================================================================
-// EXPORT HIGH RESOLUTION IMAGE
+// EXPORT DATA DOWNLOAD EXPORT
 // ==========================================================================
 function generateFinalCanvas(format) {
   const images = document.querySelectorAll('.strip-img-item');
@@ -299,40 +311,62 @@ function generateFinalCanvas(format) {
   const targetImgH = originalHeight * scale;
   const padding = 40 * scale;
   const gap = 30 * scale;
-  const bottomSpace = 130 * scale;
+  const bottomSpace = 140 * scale;
 
   const canvas = document.createElement('canvas');
   canvas.width = targetImgW + (padding * 2);
   canvas.height = (targetImgH * images.length) + (gap * (images.length - 1)) + padding + bottomSpace;
   const ctx = canvas.getContext('2d');
 
-  ctx.fillStyle = state.frameBgColor || '#ffffff';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // Skema Render Background Motif Frame di Canvas Unduhan
+  if (state.activeTheme === 'y2k-lime') {
+    ctx.fillStyle = '#7cd93a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else if (state.activeTheme === 'retro-stripes') {
+    ctx.fillStyle = '#eae1d4';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#bd3a2b';
+    for (let i = -canvas.height; i < canvas.width; i += 40) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i + 20, 0);
+      ctx.lineTo(i + 20 + canvas.height, canvas.height);
+      ctx.lineTo(i + canvas.height, canvas.height);
+      ctx.fill();
+    }
+  } else if (state.activeTheme === 'cyber-glam') {
+    ctx.fillStyle = '#ffe3ec';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else {
+    ctx.fillStyle = state.frameBgColor || '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
 
   let loadedCount = 0;
   images.forEach((img, index) => {
     const currentY = padding + (index * (targetImgH + gap));
     ctx.save();
+    
+    // Penyesuaian editor kecerahan
     const rangeBright = document.getElementById('rangeBright');
     const rangeContrast = document.getElementById('rangeContrast');
     const bVal = rangeBright ? rangeBright.value : 100;
     const cVal = rangeContrast ? rangeContrast.value : 100;
     ctx.filter = `brightness(${bVal}%) contrast(${cVal}%)`;
+    
     ctx.drawImage(img, padding, currentY, targetImgW, targetImgH);
     ctx.restore();
     
     loadedCount++;
     if (loadedCount === images.length) {
-      const warnaTerang = ['#ffffff', '#ffe3ec', '#d8f3dc', '#e0aaff', '#f0f0f0'];
-      ctx.fillStyle = warnaTerang.includes(state.frameBgColor.toLowerCase()) ? '#111111' : '#ffffff';
-      
+      ctx.fillStyle = (state.activeTheme === 'y2k-lime' || state.activeTheme === 'retro-stripes') ? '#000000' : '#111111';
       ctx.textAlign = 'center';
       ctx.font = `bold ${24 * scale}px sans-serif`;
-      ctx.fillText("✨ SNAPGLOW AESTHETIC ✨", canvas.width / 2, canvas.height - (60 * scale));
+      ctx.fillText("✨ SNAPGLOW PHOTOMOCK ✨", canvas.width / 2, canvas.height - (65 * scale));
       
       const today = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
       ctx.font = `${18 * scale}px sans-serif`;
-      ctx.fillText(today, canvas.width / 2, canvas.height - (25 * scale));
+      ctx.fillText(today, canvas.width / 2, canvas.height - (30 * scale));
 
       const dataUrl = canvas.toDataURL(format === 'png' ? 'image/png' : 'image/jpeg', 1.0);
       const link = document.createElement('a');
@@ -343,11 +377,11 @@ function generateFinalCanvas(format) {
   });
 }
 
-// BIND ON LOAD
+// BIND INITIAL ONLOAD
 window.addEventListener('DOMContentLoaded', () => { 
   initPhotostrip(); 
-  bindFrameSelection();
-  initShutterButton();
+  bindCustomControls();
+  initShutterEngine();
 
   const dJpg = document.getElementById('btnDownloadJpg');
   const dPng = document.getElementById('btnDownloadPng');
