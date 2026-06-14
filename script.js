@@ -362,6 +362,39 @@ function generateFinalCanvas(format) {
   // Background Frame Warna Terpilih
   ctx.fillStyle = state.frameBgColor;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // --- INJEKSI MOTIF GRAFIS TEMA BIAR GAK FLAT PAS DI-DOWNLOAD ---
+  if (state.activeTheme === 'y2k-lime') {
+    // Gambar stiker teks atas
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `bold ${22 * scale}px sans-serif`;
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 4 * scale;
+    ctx.strokeText("⚝ COOL ⚝", canvas.width - (140 * scale), 45 * scale);
+    ctx.fillText("⚝ COOL ⚝", canvas.width - (140 * scale), 45 * scale);
+
+    // Gambar stiker teks bawah HBD !!
+    ctx.fillStyle = '#ffff00';
+    ctx.font = `900 ${28 * scale}px sans-serif`;
+    ctx.strokeText("HBD !!", 50 * scale, canvas.height - (bottomSpace + 10 * scale));
+    ctx.fillText("HBD !!", 50 * scale, canvas.height - (bottomSpace + 10 * scale));
+  } 
+  else if (state.activeTheme === 'retro-burgundy') {
+    // Buat pola titik-titik polka retro
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+    for (let x = 0; x < canvas.width; x += 25 * scale) {
+      for (let y = 0; y < canvas.height; y += 25 * scale) {
+        ctx.beginPath();
+        ctx.arc(x, y, 3 * scale, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+  else if (state.activeTheme === 'soft-lilac') {
+    // Tambah dekorasi tulisan imut di bagian bawah strip
+    ctx.fillStyle = '#6b21a8';
+    ctx.font = `italic ${20 * scale}px sans-serif`;
+    ctx.fillText("💖 cloud 💖", canvas.width - (130 * scale), canvas.height - (bottomSpace + 15 * scale));
+  }
 
   let currentY = padding;
 
