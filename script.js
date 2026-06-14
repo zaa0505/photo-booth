@@ -398,3 +398,109 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+// ==========================================================================
+// REAL-TIME EDITOR SLIDER LIVE MOCKUP PREVIEW
+// ==========================================================================
+const rangeBright = document.getElementById('rangeBright');
+const rangeContrast = document.getElementById('rangeContrast');
+const rangeSat = document.getElementById('rangeSat'); // Ambil element baru
+
+[rangeBright, rangeContrast, rangeSat].forEach(slider => {
+  if (slider) {
+    slider.addEventListener('input', () => {
+      document.querySelectorAll('.strip-img-item').forEach(img => {
+        const bVal = rangeBright ? rangeBright.value : 100;
+        const cVal = rangeContrast ? rangeContrast.value : 100;
+        const sVal = rangeSat ? rangeSat.value : 100; // Ambil nilai saturasi
+        
+        // Satukan efek filter CSS ke gambar mockup pratinjau
+        img.style.filter = `brightness(${bVal}%) contrast(${cVal}%) saturate(${sVal}%)`;
+      });
+    });
+  }
+});
+
+// ==========================================================================
+// EXPORT DATA CANVAS DOWNLOAD (Kecerahan + Kontras + Saturasi Terbaca Pas Download)
+// ==========================================================================
+function generateFinalCanvas(format) {
+  const images = document.querySelectorAll('.strip-img-item');
+  if (images.length === 0) return;
+
+  const originalWidth = 800;
+  const originalHeight = 600;
+  const scale = 1.5; 
+  const targetImgW = originalWidth * scale;
+  const targetImgH = originalHeight * scale;
+  const padding = 40 * scale;
+  const gap = 30 * scale;
+  const bottomSpace = 140 * scale;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = targetImgW + (padding * 2);
+  canvas.height = (targetImgH * images.length) + (gap * (images.length - 1)) + padding + bottomSpace;
+  const ctx = canvas.getContext('2d');
+
+  // Skema Render Background Motif Frame di Canvas Unduhan
+  if (state.activeTheme === 'y2k-lime') {
+    ctx.fillStyle = '#7cd93a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else if (state.activeTheme === 'retro-stripes') {
+    ctx.fillStyle = '#eae1d4';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#bd3a2b';
+    for (let i = -canvas.height; i < canvas.width; i += 40) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i + 20, 0);
+      ctx.lineTo(i + 20 + canvas.height, canvas.height);
+      ctx.lineTo(i + canvas.height, canvas.height);
+      ctx.fill();
+    }
+  } else if (state.activeTheme === 'cyber-glam') {
+    ctx.fillStyle = '#ffe3ec';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else {
+    ctx.fillStyle = state.frameBgColor || '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  let loadedCount = 0;
+  images.forEach((img, index) => {
+    const currentY = padding + (index * (targetImgH + gap));
+    ctx.save();
+    
+    // Penyesuaian editor kecerahan, kontras, DAN SATURASI sebelum digambar ke file unduhan
+    const rBright = document.getElementById('rangeBright');
+    const rContrast = document.getElementById('rangeContrast');
+    const rSat = document.getElementById('rangeSat'); // slider baru
+    
+    const bVal = rBright ? rBright.value : 100;
+    const cVal = rContrast ? rContrast.value : 100;
+    const sVal = rSat ? rSat.value : 100;
+    
+    // Gabungkan ketiga filter ke dalam ctx canvas
+    ctx.filter = `brightness(${bVal}%) contrast(${cVal}%) saturate(${sVal}%)`;
+    
+    ctx.drawImage(img, padding, currentY, targetImgW, targetImgH);
+    ctx.restore();
+    
+    loadedCount++;
+    if (loadedCount === images.length) {
+      ctx.fillStyle = (state.activeTheme === 'y2k-lime' || state.activeTheme === 'retro-stripes') ? '#000000' : '#111111';
+      ctx.textAlign = 'center';
+      ctx.font = `bold ${24 * scale}px sans-serif`;
+      ctx.fillText("✨ SNAPGLOW PHOTOMOCK ✨", canvas.width / 2, canvas.height - (65 * scale));
+      
+      const today = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
+      ctx.font = `${18 * scale}px sans-serif`;
+      ctx.fillText(today, canvas.width / 2, canvas.height - (30 * scale));
+
+      const dataUrl = canvas.toDataURL(format === 'png' ? 'image/png' : 'image/jpeg', 1.0);
+      const link = document.createElement('a');
+      link.download = `snapglow-${Date.now()}.${format}`;
+      link.href = dataUrl;
+      link.click();
+    }
+  });
+}

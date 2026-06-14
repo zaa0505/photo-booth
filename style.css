@@ -118,90 +118,68 @@ body {
 .frame-info p { font-size: 0.85rem; color: var(--text-muted); }
 
 /* ==========================================================================
-   3. BOOTH LAYOUT (AREA KAMERA & SIDEBAR)
+   3. BOOTH LAYOUT (AREA KAMERA & SIDEBAR) - MOBILE OPTIMIZED
    ========================================================================== */
 .booth-layout {
   display: grid;
   grid-template-columns: 1fr 360px;
   gap: 30px;
+  align-items: start;
 }
 
+/* Responsif untuk Layar HP (Breakpoint di bawah 900px) */
 @media (max-width: 900px) {
-  .booth-layout { grid-template-columns: 1fr; }
+  .booth-layout {
+    grid-template-columns: 1fr; /* Jadi satu kolom atas-bawah */
+    gap: 20px;
+  }
+  
+  .main-container {
+    margin: 15px auto;
+    padding: 0 12px; /* Perkecil padding sisi layar HP */
+  }
+  
+  .step-card {
+    padding: 16px; /* Perkecil padding box biar space kamera lebih luas */
+  }
 }
 
-/* Kotak Kamera & Live Preview Container */
+/* Kotak Kamera Utama */
 .camera-box {
   width: 100%;
   display: flex;
   flex-direction: column;
+  align-items: center; /* MEMASTIKAN SEMUA ELEMEN DI DALAMNYA PAS DI TENGAH */
+  justify-content: center;
   gap: 20px;
 }
+
+/* KUNCI UTAMA: Kontainer Preview Kamera Biar Simetris */
 .preview-container {
   position: relative;
   width: 100%;
-  aspect-ratio: 4/3;
+  max-width: 640px; /* Batasi lebar maksimal di desktop/tablet */
+  aspect-ratio: 4/3; /* Mempertahankan aspek rasio standar photobooth */
   background-color: #000;
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+  
+  /* Flexbox untuk memastikan video di dalamnya di-center total */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto; /* Supaya kontainer luar terdorong ke tengah layar HP */
 }
+
+/* Element Video Kamera */
 #videoFeed {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  transform: scaleX(-1); /* Efek Cermin Bawaan */
+  object-fit: cover; /* Memotong sisa feed video HP agar pas dengan box 4:3 */
+  object-position: center; /* MEMASTIKAN TITIK POTONGAN FOCUS DI TENGAH-TENGAH WAJAH */
+  transform: scaleX(-1); /* Efek mirror kaca */
 }
-
-/* --- LIVE OVERLAY BINGKAI DINAMIS DI AREA LIVE CAMERA PREVIEW --- */
-.live-frame-overlay {
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  pointer-events: none;
-  box-sizing: border-box;
-  border: 24px solid transparent;
-  transition: var(--transition-smooth);
-  z-index: 2;
-}
-.live-frame-overlay[data-active-theme="plain-white"] { border-color: #ffffff; }
-.live-frame-overlay[data-active-theme="y2k-lime"] { border-color: #7cd93a; border-radius: 24px; box-shadow: inset 0 0 0 3px #ffffff; }
-.live-frame-overlay[data-active-theme="retro-stripes"] { border-color: #eae1d4; background-image: repeating-linear-gradient(45deg, #bd3a2b, #bd3a2b 12px, transparent 12px, transparent 24px); }
-.live-frame-overlay[data-active-theme="cyber-glam"] { border-color: #ffe3ec; box-shadow: inset 0 0 0 4px rgba(255, 102, 178, 0.3); }
-
-/* Progress Bar Sesi */
-.progress-box { color: var(--text-main); font-size: 0.9rem; }
-.progress-bar { width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-top: 6px; overflow: hidden; }
-#progressFill { height: 100%; background: var(--accent-neon); width: 0%; transition: width 0.3s ease; }
-
-/* Countdown & Flash */
-.countdown-display {
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  display: none; align-items: center; justify-content: center;
-  font-family: 'Space Grotesk', sans-serif; font-size: 8rem; font-weight: bold;
-  color: #fff; text-shadow: 0 4px 25px rgba(0,0,0,0.7); z-index: 5;
-}
-.flash-overlay {
-  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-  background: #fff; opacity: 0; pointer-events: none; z-index: 9999;
-}
-.flash-overlay.active { animation: flashAnim 0.30s ease-out; }
-@keyframes flashAnim { 0% { opacity: 1; } 100% { opacity: 0; } }
-
-/* Sidebar Control Panel */
-.booth-sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-}
-.sidebar-block {
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.05);
-  border-radius: var(--radius-sm);
-  padding: 18px;
-}
-.sidebar-block h3 { font-size: 0.95rem; margin-bottom: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-
 /* ==========================================================================
    4. BUTTON STYLING (SHUTTER, COLOR DOT, THEME, FILTER)
    ========================================================================== */
