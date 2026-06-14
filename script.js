@@ -198,6 +198,62 @@ function captureFrame() {
     ctx.fillStyle = "rgba(255,255,255,0.7)";
     ctx.fillText("[ Mode Simulasi Aktif ]", canvas.width / 2, canvas.height / 2 + 20);
   } else {
+    // RENDER DARI KAMERA ASLI (DENGAN FIX BIAR TIDAK GEPENG)
+    ctx.save();
+    
+    // Logika Mirroring jika menggunakan kamera depan
+    if (state.facingMode === 'user') {
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+    }
+    
+    // Ambil filter CSS yang sedang aktif pada elemen video
+    ctx.filter = getComputedStyle(videoFeed).filter;
+
+    // --- RUMUS DETEKSI ASPECT RATIO & AUTO CROP (ANTI GEPENG) ---
+    const videoW = videoFeed.videoWidth;
+    const videoH = videoFeed.videoHeight;
+    
+    const targetRatio = canvas.width / canvas.height;
+    const videoRatio = videoW / videoH;
+    
+    let sx, sy, sw, sh;
+    
+    if (videoRatio > targetRatio) {
+      // Jika video asli lebih lebar (lebar hp), potong bagian kiri & kanan
+      sh = videoH;
+      sw = videoH * targetRatio;
+      sx = (videoW - sw) / 2;
+      sy = 0;
+    } else {
+      // Jika video asli lebih tinggi (tinggi hp), potong bagian atas & bawah
+      sw = videoW;
+      sh = videoW / targetRatio;
+      sx = 0;
+      sy = (videoH - sh) / 2;
+    }
+
+    // Gambar ke canvas menggunakan koordinat crop (sx, sy, sw, sh)
+    ctx.drawImage(videoFeed, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+    ctx.restore();
+  }
+
+  state.capturedImages.push(canvas.toDataURL('image/jpeg', 0.9));
+  state.currentSlotIndex++;
+  updateProgressBar();
+
+  // Efek Flash Layar
+  flashOverlay.classList.add('active');
+  setTimeout(() => flashOverlay.classList.remove('active'), 300);
+
+  // Cek sisa slot foto
+  if (state.currentSlotIndex < state.selectedSlots) {
+    setTimeout(() => { runSessionCountdown(); }, 1500);
+  } else {
+    btnTriggerPhoto.disabled = false;
+    setTimeout(() => { finishPhotoSession(); }, 1000);
+  }
+} {
     // RENDER DARI KAMERA ASLI
     if (state.facingMode === 'user') {
       ctx.translate(canvas.width, 0);
@@ -222,7 +278,7 @@ function captureFrame() {
     btnTriggerPhoto.disabled = false;
     setTimeout(() => { finishPhotoSession(); }, 1000);
   }
-}
+
 
 function finishPhotoSession() {
   if (state.currentStream && state.currentStream !== "simulated") {
