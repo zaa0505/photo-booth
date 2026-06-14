@@ -198,6 +198,85 @@ function captureFrame() {
     ctx.fillStyle = "rgba(255,255,255,0.7)";
     ctx.fillText("[ Mode Simulasi Aktif ]", canvas.width / 2, canvas.height / 2 + 20);
   } else {
+    // RENDER DARI KAMERA ASLI (ANTI GEPENG & FILTER AMAN)
+    ctx.save();
+    
+    // 1. Ambil filter warna real-time (Normal, Vintage, B&W, dll) yang aktif di layar preview
+    ctx.filter = getComputedStyle(videoFeed).filter;
+
+    // 2. Logika Mirroring jika menggunakan kamera depan
+    if (state.facingMode === 'user') {
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+    }
+
+    // 3. Rumus Deteksi Aspect Ratio & Auto Crop (Biar tidak gepeng)
+    const videoW = videoFeed.videoWidth;
+    const videoH = videoFeed.videoHeight;
+    
+    const targetRatio = canvas.width / canvas.height;
+    const videoRatio = videoW / videoH;
+    
+    let sx, sy, sw, sh;
+    
+    if (videoRatio > targetRatio) {
+      // Jika video asli lebih lebar (lebar HP), potong bagian kiri & kanan
+      sh = videoH;
+      sw = videoH * targetRatio;
+      sx = (videoW - sw) / 2;
+      sy = 0;
+    } else {
+      // Jika video asli lebih tinggi (tinggi HP), potong bagian atas & bawah
+      sw = videoW;
+      sh = videoW / targetRatio;
+      sx = 0;
+      sy = (videoH - sh) / 2;
+    }
+
+    // 4. Gambar ke canvas dengan koordinat potong proporsional
+    ctx.drawImage(videoFeed, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+    
+    // Kembalikan posisi koordinat normal setelah mirroring selesai
+    ctx.restore();
+  }
+
+  // Masukkan hasil foto ke dalam array penyimpanan
+  state.capturedImages.push(canvas.toDataURL('image/jpeg', 0.9));
+  state.currentSlotIndex++;
+  updateProgressBar();
+
+  // Efek Flash Layar
+  flashOverlay.classList.add('active');
+  setTimeout(() => flashOverlay.classList.remove('active'), 300);
+
+  // Cek sisa slot foto
+  if (state.currentSlotIndex < state.selectedSlots) {
+    setTimeout(() => { runSessionCountdown(); }, 1500);
+  } else {
+    btnTriggerPhoto.disabled = false;
+    setTimeout(() => { finishPhotoSession(); }, 1000);
+  }
+}
+
+  if (state.isSimulation) {
+    // RENDER GRADASI ESTETIK JIKA MASUK MODE SIMULASI
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    const colors = [['#a370f7', '#3a86ff'], ['#ff0055', '#ffe3ec'], ['#00f2fe', '#4facfe'], ['#ff0844', '#ffb199']];
+    const setChoice = colors[state.currentSlotIndex % colors.length];
+    
+    gradient.addColorStop(0, setChoice[0]);
+    gradient.addColorStop(1, setChoice[1]);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 32px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(`✨ Hasil Foto Ke-${state.currentSlotIndex + 1} ✨`, canvas.width / 2, canvas.height / 2 - 20);
+    ctx.font = "18px sans-serif";
+    ctx.fillStyle = "rgba(255,255,255,0.7)";
+    ctx.fillText("[ Mode Simulasi Aktif ]", canvas.width / 2, canvas.height / 2 + 20);
+  } else {
     // RENDER DARI KAMERA ASLI (DENGAN FIX BIAR TIDAK GEPENG)
     ctx.save();
     
