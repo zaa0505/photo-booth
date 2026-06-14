@@ -1,6 +1,6 @@
 /**
  * SnapGlow - Photobooth Core Script
- * Version: 2.6 (Ultimate Fixed Edition)
+ * Version: 2.7 (Perfect Frame Theme Sync & Instagram Filters)
  */
 
 // ==========================================================================
@@ -43,7 +43,7 @@ const selectTimer = document.getElementById('selectTimer');
 const btnStartCapture = document.getElementById('btnStartCapture');
 
 // ==========================================================================
-// 4. INITIALIZE MOCKUP GRID LAYOUT (PENGUNCI BINGKAI/FRAME)
+// 4. INITIALIZE MOCKUP GRID LAYOUT (UNTUK HALAMAN BOOTH / FOTO)
 // ==========================================================================
 function initPhotostrip() {
   if (!photostripContainer) return;
@@ -52,7 +52,7 @@ function initPhotostrip() {
   photostripContainer.style.backgroundColor = state.frameBgColor;
   photostripContainer.setAttribute('data-active-theme', state.activeTheme);
   
-  // Render kotak kosong sesuai jumlah slot (2, 4, atau 6)
+  // Hanya membuat kotak kosong awal saat mau mulai foto di stepBooth
   for (let i = 0; i < state.selectedSlots; i++) {
     const slot = document.createElement('div');
     slot.className = 'strip-photo-slot empty';
@@ -69,7 +69,7 @@ function initPhotostrip() {
   }
 }
 
-// Menggambar Hasil Foto ke Grid Halaman Akhir
+// Menggambar Hasil Foto Asli Berurutan ke Frame Halaman Akhir (Hasil)
 function renderMockupStrip() {
   if (!photostripContainer) return;
   photostripContainer.innerHTML = '';
@@ -78,7 +78,7 @@ function renderMockupStrip() {
 
   state.capturedImages.forEach(imgSrc => {
     const imgEl = document.createElement('img');
-    imgSrc && (imgEl.src = imgSrc);
+    if (imgSrc) imgEl.src = imgSrc;
     imgEl.className = 'strip-img-item';
     imgEl.style.width = '100%';
     imgEl.style.aspectRatio = '4/3';
@@ -104,12 +104,12 @@ document.querySelectorAll('.frame-card.option').forEach(card => {
     card.classList.add('active');
     
     state.selectedSlots = parseInt(card.dataset.slots);
-    initPhotostrip(); // Auto ganti layout kotak di background
+    initPhotostrip(); // Ubah kerangka kotak kosong secara real-time
   });
 });
 
 // ==========================================================================
-// 6. EVENT LISTENERS: WARNA & TEMA BINGKAI BERMOTIF
+// 6. EVENT LISTENERS: GANTI WARNA & TEMA BINGKAI SECARA INSTAN (FIXED!)
 // ==========================================================================
 document.querySelectorAll('.color-dot').forEach(dot => {
   dot.addEventListener('click', () => {
@@ -118,6 +118,7 @@ document.querySelectorAll('.color-dot').forEach(dot => {
     
     state.frameBgColor = dot.dataset.color;
     
+    // Penentuan tema motif berdasarkan warna yang diklik
     if (state.frameBgColor === '#ffe3ec') {
       state.activeTheme = 'y2k-lime';
     } else if (state.frameBgColor === '#111111') {
@@ -128,7 +129,11 @@ document.querySelectorAll('.color-dot').forEach(dot => {
       state.activeTheme = 'plain-white';
     }
     
-    initPhotostrip();
+    // PERBAIKAN: Langsung ubah style container pratinjau tanpa merender ulang kotak kosong!
+    if (photostripContainer) {
+      photostripContainer.style.backgroundColor = state.frameBgColor;
+      photostripContainer.setAttribute('data-active-theme', state.activeTheme);
+    }
   });
 });
 
@@ -176,7 +181,7 @@ if (btnStartCapture) {
     document.getElementById('currentSlotIdx').textContent = '0';
     document.getElementById('progressFill').style.width = '0%';
     
-    initPhotostrip(); 
+    initPhotostrip(); // Jalankan sekali saja di sini untuk menyiapkan wadah kotak
     await startCamera();
   });
 }
@@ -306,7 +311,7 @@ function finishPhotoSession() {
   }
   stepBooth.classList.remove('active');
   stepResult.classList.add('active');
-  renderMockupStrip();
+  renderMockupStrip(); // Gambar foto-foto asli di frame halaman download akhir
 }
 
 // ==========================================================================
@@ -351,6 +356,7 @@ function generateFinalCanvas(format) {
   ctx.fillStyle = state.frameBgColor;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+  // Rendring motif ornamen bingkai pada file hasil unduhan
   if (state.activeTheme === 'y2k-lime') {
     ctx.fillStyle = '#ffffff'; ctx.font = `bold ${22 * scale}px sans-serif`;
     ctx.strokeStyle = '#000000'; ctx.lineWidth = 4 * scale;
@@ -379,42 +385,4 @@ function generateFinalCanvas(format) {
     loadedCount++;
     if (loadedCount === images.length) {
       const warnaTerang = ['#ffffff', '#ffe3ec', '#d8f3dc', '#e0aaff'];
-      ctx.fillStyle = warnaTerang.includes(state.frameBgColor) ? '#111111' : '#ffffff';
-      
-      ctx.textAlign = 'center';
-      ctx.font = `bold ${24 * scale}px sans-serif`;
-      ctx.fillText("✨ SNAPGLOW AESTHETIC ✨", canvas.width / 2, canvas.height - (60 * scale));
-      
-      const today = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
-      ctx.font = `${18 * scale}px sans-serif`;
-      ctx.fillText(today, canvas.width / 2, canvas.height - (25 * scale));
-
-      const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
-      const fileExt = format === 'png' ? 'png' : 'jpg';
-      
-      const dataUrl = canvas.toDataURL(mimeType, 1.0);
-      const link = document.createElement('a');
-      link.download = `snapglow-${Date.now()}.${fileExt}`;
-      link.href = dataUrl;
-      link.click();
-    }
-  });
-}
-
-const btnDownloadJpg = document.getElementById('btnDownloadJpg');
-const btnDownloadPng = document.getElementById('btnDownloadPng');
-
-if (btnDownloadJpg) btnDownloadJpg.addEventListener('click', () => generateFinalCanvas('jpg'));
-if (btnDownloadPng) btnDownloadPng.addEventListener('click', () => generateFinalCanvas('png'));
-
-document.getElementById('btnResetAll').addEventListener('click', () => {
-  stepResult.classList.remove('active');
-  stepSelection.classList.add('active');
-  state.capturedImages = [];
-  state.currentSlotIndex = 0;
-});
-
-// Booting awal web
-window.addEventListener('DOMContentLoaded', () => {
-  initPhotostrip();
-});
+      ctx.fillStyle = warnaTerang.includes(state.frameBgColor) ? '#111
