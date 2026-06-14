@@ -1,6 +1,6 @@
 /**
  * SnapGlow - Photobooth Core Script
- * Version: 2.4 (Full Combined Edition with Instagram Filters)
+ * Version: 2.5 (Fixed Missing Frame Initializer & Full Instagram Filters)
  */
 
 // ==========================================================================
@@ -43,15 +43,39 @@ const selectTimer = document.getElementById('selectTimer');
 const btnStartCapture = document.getElementById('btnStartCapture');
 
 // ==========================================================================
-// 4. RENDERING MOCKUP GRID LAYOUT
+// 4. INITIALIZE MOCKUP GRID LAYOUT (INI YANG TADI HILANG, BOS!)
 // ==========================================================================
+function initPhotostrip() {
+  if (!photostripContainer) return;
+  
+  photostripContainer.innerHTML = '';
+  photostripContainer.style.backgroundColor = state.frameBgColor;
+  photostripContainer.setAttribute('data-active-theme', state.activeTheme);
+  
+  // Render kotak abu-abu kosong sesuai jumlah slot yang dipilih (2, 4, atau 6)
+  for (let i = 0; i < state.selectedSlots; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'strip-photo-slot empty';
+    slot.style.width = '100%';
+    slot.style.aspectRatio = '4/3';
+    slot.style.backgroundColor = 'rgba(0,0,0,0.05)';
+    slot.style.marginBottom = '15px';
+    slot.style.display = 'flex';
+    slot.style.alignItems = 'center';
+    slot.style.justifyContent = 'center';
+    slot.innerHTML = `<span style="color: rgba(0,0,0,0.2); font-weight: bold;">${i + 1}</span>`;
+    
+    photostripContainer.appendChild(slot);
+  }
+}
+
+// Menggambar Hasil Jepretan Kamera ke Grid Preview Halaman Akhir
 function renderMockupStrip() {
   if (!photostripContainer) return;
   photostripContainer.innerHTML = '';
   photostripContainer.style.backgroundColor = state.frameBgColor;
   photostripContainer.setAttribute('data-active-theme', state.activeTheme);
 
-  // Gambar foto hasil jepretan ke dalam frame mockup halaman akhir
   state.capturedImages.forEach(imgSrc => {
     const imgEl = document.createElement('img');
     imgEl.src = imgSrc;
@@ -64,7 +88,6 @@ function renderMockupStrip() {
     photostripContainer.appendChild(imgEl);
   });
 
-  // Tambahkan tulisan Watermark SnapGlow di bawah frame
   const watermark = document.createElement('div');
   watermark.className = 'watermark';
   const today = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -82,6 +105,7 @@ document.querySelectorAll('.frame-card.option').forEach(card => {
     
     // Set jumlah foto secara dinamis (2, 4, atau 6) sesuai pilihan card user
     state.selectedSlots = parseInt(card.dataset.slots);
+    initPhotostrip(); // Gambar ulang kerangka kotak frame
   });
 });
 
@@ -108,10 +132,7 @@ document.querySelectorAll('.color-dot').forEach(dot => {
     }
     
     // Terapkan efeknya langsung ke container pratinjau mockup
-    if (photostripContainer) {
-      photostripContainer.style.backgroundColor = state.frameBgColor;
-      photostripContainer.setAttribute('data-active-theme', state.activeTheme);
-    }
+    initPhotostrip();
   });
 });
 
@@ -155,11 +176,12 @@ if (btnStartCapture) {
     state.capturedImages = [];
     state.currentSlotIndex = 0;
     
-    // Kirim konfigurasi jumlah foto ke teks informasi sidebar booth
+    // Ambil konfigurasi awal jumlah foto ke teks informasi sidebar booth
     document.getElementById('totalSlotCount').textContent = state.selectedSlots;
     document.getElementById('currentSlotIdx').textContent = '0';
     document.getElementById('progressFill').style.width = '0%';
     
+    initPhotostrip(); // Siapkan frame kosong sebelum mulai foto
     await startCamera();
   });
 }
@@ -195,6 +217,7 @@ if (btnTriggerPhoto) {
   });
 }
 
+// Sistem Interval Countdown Otomatis Sesi Foto
 function runSessionCountdown() {
   let count = parseInt(selectTimer.value) || 5;
   countdownDisplay.style.display = 'block';
@@ -270,7 +293,7 @@ function captureFrame() {
   state.capturedImages.push(canvas.toDataURL('image/jpeg', 0.9));
   state.currentSlotIndex++;
   
-  // Menggeser nilai indikator progress bar di UI
+  // Menggeser nilai indikator progress bar di UI sidebar
   const pct = (state.currentSlotIndex / state.selectedSlots) * 100;
   document.getElementById('progressFill').style.width = `${pct}%`;
   document.getElementById('currentSlotIdx').textContent = state.currentSlotIndex;
@@ -403,4 +426,9 @@ document.getElementById('btnResetAll').addEventListener('click', () => {
   stepSelection.classList.add('active');
   state.capturedImages = [];
   state.currentSlotIndex = 0;
+});
+
+// Boot Awal Aplikasi
+window.addEventListener('DOMContentLoaded', () => {
+  initPhotostrip();
 });
