@@ -1,6 +1,6 @@
 /**
  * SnapGlow - Photobooth Core Script
- * Version: 2.5 (Fixed Missing Frame Initializer & Full Instagram Filters)
+ * Version: 2.6 (Ultimate Fixed Edition)
  */
 
 // ==========================================================================
@@ -43,7 +43,7 @@ const selectTimer = document.getElementById('selectTimer');
 const btnStartCapture = document.getElementById('btnStartCapture');
 
 // ==========================================================================
-// 4. INITIALIZE MOCKUP GRID LAYOUT (INI YANG TADI HILANG, BOS!)
+// 4. INITIALIZE MOCKUP GRID LAYOUT (PENGUNCI BINGKAI/FRAME)
 // ==========================================================================
 function initPhotostrip() {
   if (!photostripContainer) return;
@@ -52,7 +52,7 @@ function initPhotostrip() {
   photostripContainer.style.backgroundColor = state.frameBgColor;
   photostripContainer.setAttribute('data-active-theme', state.activeTheme);
   
-  // Render kotak abu-abu kosong sesuai jumlah slot yang dipilih (2, 4, atau 6)
+  // Render kotak kosong sesuai jumlah slot (2, 4, atau 6)
   for (let i = 0; i < state.selectedSlots; i++) {
     const slot = document.createElement('div');
     slot.className = 'strip-photo-slot empty';
@@ -69,7 +69,7 @@ function initPhotostrip() {
   }
 }
 
-// Menggambar Hasil Jepretan Kamera ke Grid Preview Halaman Akhir
+// Menggambar Hasil Foto ke Grid Halaman Akhir
 function renderMockupStrip() {
   if (!photostripContainer) return;
   photostripContainer.innerHTML = '';
@@ -78,7 +78,7 @@ function renderMockupStrip() {
 
   state.capturedImages.forEach(imgSrc => {
     const imgEl = document.createElement('img');
-    imgEl.src = imgSrc;
+    imgSrc && (imgEl.src = imgSrc);
     imgEl.className = 'strip-img-item';
     imgEl.style.width = '100%';
     imgEl.style.aspectRatio = '4/3';
@@ -96,16 +96,15 @@ function renderMockupStrip() {
 }
 
 // ==========================================================================
-// 5. EVENT LISTENERS: PILIHAN LAYOUT SLOT FOTO (SINKRON CLASS)
+// 5. EVENT LISTENERS: PILIHAN LAYOUT SLOT FOTO
 // ==========================================================================
 document.querySelectorAll('.frame-card.option').forEach(card => {
   card.addEventListener('click', () => {
     document.querySelectorAll('.frame-card.option').forEach(c => c.classList.remove('active'));
     card.classList.add('active');
     
-    // Set jumlah foto secara dinamis (2, 4, atau 6) sesuai pilihan card user
     state.selectedSlots = parseInt(card.dataset.slots);
-    initPhotostrip(); // Gambar ulang kerangka kotak frame
+    initPhotostrip(); // Auto ganti layout kotak di background
   });
 });
 
@@ -117,21 +116,18 @@ document.querySelectorAll('.color-dot').forEach(dot => {
     document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
     dot.classList.add('active');
     
-    // Ambil kode warna dari atribut data-color di HTML
     state.frameBgColor = dot.dataset.color;
     
-    // Logika pengaktifan tema corak/motif grafis berdasarkan warna yang diklik
     if (state.frameBgColor === '#ffe3ec') {
-      state.activeTheme = 'y2k-lime';       // Corak Y2K Pop jika memilih pink cerah
+      state.activeTheme = 'y2k-lime';
     } else if (state.frameBgColor === '#111111') {
-      state.activeTheme = 'retro-burgundy'; // Corak Retro Polka jika memilih hitam
+      state.activeTheme = 'retro-burgundy';
     } else if (state.frameBgColor === '#e0aaff') {
-      state.activeTheme = 'soft-lilac';     // Corak Soft Heart jika memilih ungu pastel
+      state.activeTheme = 'soft-lilac';
     } else {
-      state.activeTheme = 'plain-white';     // Polos untuk warna putih atau lainnya
+      state.activeTheme = 'plain-white';
     }
     
-    // Terapkan efeknya langsung ke container pratinjau mockup
     initPhotostrip();
   });
 });
@@ -160,7 +156,7 @@ async function startCamera() {
     videoFeed.srcObject = state.currentStream;
     videoFeed.play().catch(e => console.log("Gagal memutar video feed"));
   } catch (err) {
-    console.warn("Kamera terblokir atau tidak disupport, beralih ke mode simulasi:", err);
+    console.warn("Kamera beralih ke mode simulasi:", err);
     state.isSimulation = true;
     state.currentStream = "simulated";
     videoFeed.srcObject = null;
@@ -176,17 +172,15 @@ if (btnStartCapture) {
     state.capturedImages = [];
     state.currentSlotIndex = 0;
     
-    // Ambil konfigurasi awal jumlah foto ke teks informasi sidebar booth
     document.getElementById('totalSlotCount').textContent = state.selectedSlots;
     document.getElementById('currentSlotIdx').textContent = '0';
     document.getElementById('progressFill').style.width = '0%';
     
-    initPhotostrip(); // Siapkan frame kosong sebelum mulai foto
+    initPhotostrip(); 
     await startCamera();
   });
 }
 
-// Balik Kamera Depan / Belakang
 document.getElementById('btnSwitchCam').addEventListener('click', async () => {
   if (state.isSimulation) return;
   state.facingMode = (state.facingMode === 'user') ? 'environment' : 'user';
@@ -194,7 +188,6 @@ document.getElementById('btnSwitchCam').addEventListener('click', async () => {
   await startCamera();
 });
 
-// Ganti Filter Layar Live Preview Kamera
 document.querySelectorAll('.filter-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -217,7 +210,6 @@ if (btnTriggerPhoto) {
   });
 }
 
-// Sistem Interval Countdown Otomatis Sesi Foto
 function runSessionCountdown() {
   let count = parseInt(selectTimer.value) || 5;
   countdownDisplay.style.display = 'block';
@@ -252,7 +244,7 @@ function captureFrame() {
   } else {
     ctx.save();
     
-    // Terapkan Filter Instagram Baru ke Dalam Hasil Canvas Ekspor
+    // Terapkan Filter Instagram Baru ke Engine Export Canvas
     if (state.activeFilter === 'filter-paris') {
       ctx.filter = 'brightness(1.12) contrast(0.92) saturate(1.05)';
     } else if (state.activeFilter === 'filter-jakarta') {
@@ -293,7 +285,6 @@ function captureFrame() {
   state.capturedImages.push(canvas.toDataURL('image/jpeg', 0.9));
   state.currentSlotIndex++;
   
-  // Menggeser nilai indikator progress bar di UI sidebar
   const pct = (state.currentSlotIndex / state.selectedSlots) * 100;
   document.getElementById('progressFill').style.width = `${pct}%`;
   document.getElementById('currentSlotIdx').textContent = state.currentSlotIndex;
@@ -319,7 +310,7 @@ function finishPhotoSession() {
 }
 
 // ==========================================================================
-// 9. ADJUSTMENT SLIDER KECERAHAN & KONTRAS HALAMAN AKHIR
+// 9. ADJUSTMENT SLIDER KECERAHAN & KONTRAS
 // ==========================================================================
 const rangeBright = document.getElementById('rangeBright');
 const rangeContrast = document.getElementById('rangeContrast');
@@ -357,11 +348,9 @@ function generateFinalCanvas(format) {
 
   const ctx = canvas.getContext('2d');
 
-  // Cetak warna dasar background frame terpilih
   ctx.fillStyle = state.frameBgColor;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // --- RENDERING CORAK DEKORASI BINGKAI PAS DI-DOWNLOAD ---
   if (state.activeTheme === 'y2k-lime') {
     ctx.fillStyle = '#ffffff'; ctx.font = `bold ${22 * scale}px sans-serif`;
     ctx.strokeStyle = '#000000'; ctx.lineWidth = 4 * scale;
@@ -379,7 +368,6 @@ function generateFinalCanvas(format) {
     ctx.fillText("💖 cloud 💖", canvas.width - (130 * scale), canvas.height - 40 * scale);
   }
 
-  // Rekat file jepretan foto satu per satu berurutan ke bawah
   let loadedCount = 0;
   images.forEach((img, index) => {
     const currentY = padding + (index * (targetImgH + gap));
@@ -390,7 +378,6 @@ function generateFinalCanvas(format) {
     
     loadedCount++;
     if (loadedCount === images.length) {
-      // Warna teks branding otomatis mendeteksi kegelapan warna background frame
       const warnaTerang = ['#ffffff', '#ffe3ec', '#d8f3dc', '#e0aaff'];
       ctx.fillStyle = warnaTerang.includes(state.frameBgColor) ? '#111111' : '#ffffff';
       
@@ -420,7 +407,6 @@ const btnDownloadPng = document.getElementById('btnDownloadPng');
 if (btnDownloadJpg) btnDownloadJpg.addEventListener('click', () => generateFinalCanvas('jpg'));
 if (btnDownloadPng) btnDownloadPng.addEventListener('click', () => generateFinalCanvas('png'));
 
-// Reset Mengulang Sesi Foto Kembali dari Awal
 document.getElementById('btnResetAll').addEventListener('click', () => {
   stepResult.classList.remove('active');
   stepSelection.classList.add('active');
@@ -428,7 +414,7 @@ document.getElementById('btnResetAll').addEventListener('click', () => {
   state.currentSlotIndex = 0;
 });
 
-// Boot Awal Aplikasi
+// Booting awal web
 window.addEventListener('DOMContentLoaded', () => {
   initPhotostrip();
 });
