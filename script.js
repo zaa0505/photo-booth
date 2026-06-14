@@ -1,21 +1,14 @@
 /**
  * SnapGlow - Photobooth Core Script
- * Version: 2.7 (Perfect Frame Theme Sync & Instagram Filters)
+ * Version: 2.8 (Graphic Templates Integrated Edition)
  */
 
-// ==========================================================================
-// 1. REGISTRASI SERVICE WORKER (PWA)
-// ==========================================================================
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js')
-      .catch(err => console.log('Service Worker gagal dikonfigurasi:', err));
+    navigator.serviceWorker.register('./service-worker.js').catch(err => console.log(err));
   });
 }
 
-// ==========================================================================
-// 2. GLOBAL STATE MANAGEMENT
-// ==========================================================================
 const state = {
   selectedSlots: 4,
   currentStream: null,
@@ -28,9 +21,6 @@ const state = {
   isSimulation: false
 };
 
-// ==========================================================================
-// 3. DOM ELEMENTS TARGET
-// ==========================================================================
 const stepSelection = document.getElementById('stepSelection');
 const stepBooth = document.getElementById('stepBooth');
 const stepResult = document.getElementById('stepResult');
@@ -42,17 +32,11 @@ const btnTriggerPhoto = document.getElementById('btnTriggerPhoto');
 const selectTimer = document.getElementById('selectTimer');
 const btnStartCapture = document.getElementById('btnStartCapture');
 
-// ==========================================================================
-// 4. INITIALIZE MOCKUP GRID LAYOUT (UNTUK HALAMAN BOOTH / FOTO)
-// ==========================================================================
 function initPhotostrip() {
   if (!photostripContainer) return;
-  
   photostripContainer.innerHTML = '';
-  photostripContainer.style.backgroundColor = state.frameBgColor;
   photostripContainer.setAttribute('data-active-theme', state.activeTheme);
   
-  // Hanya membuat kotak kosong awal saat mau mulai foto di stepBooth
   for (let i = 0; i < state.selectedSlots; i++) {
     const slot = document.createElement('div');
     slot.className = 'strip-photo-slot empty';
@@ -64,16 +48,13 @@ function initPhotostrip() {
     slot.style.alignItems = 'center';
     slot.style.justifyContent = 'center';
     slot.innerHTML = `<span style="color: rgba(0,0,0,0.2); font-weight: bold;">${i + 1}</span>`;
-    
     photostripContainer.appendChild(slot);
   }
 }
 
-// Menggambar Hasil Foto Asli Berurutan ke Frame Halaman Akhir (Hasil)
 function renderMockupStrip() {
   if (!photostripContainer) return;
   photostripContainer.innerHTML = '';
-  photostripContainer.style.backgroundColor = state.frameBgColor;
   photostripContainer.setAttribute('data-active-theme', state.activeTheme);
 
   state.capturedImages.forEach(imgSrc => {
@@ -95,73 +76,49 @@ function renderMockupStrip() {
   photostripContainer.appendChild(watermark);
 }
 
-// ==========================================================================
-// 5. EVENT LISTENERS: PILIHAN LAYOUT SLOT FOTO
-// ==========================================================================
-document.querySelectorAll('.frame-card.option').forEach(card => {
-  card.addEventListener('click', () => {
-    document.querySelectorAll('.frame-card.option').forEach(c => c.classList.remove('active'));
-    card.classList.add('active');
+// Event Listener Klik Pilihan Desain Tema Grafis
+document.querySelectorAll('.theme-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
     
-    state.selectedSlots = parseInt(card.dataset.slots);
-    initPhotostrip(); // Ubah kerangka kotak kosong secara real-time
-  });
-});
+    state.activeTheme = btn.dataset.theme;
+    
+    // Set warna dasar otomatis buat cadangan canvas ekspor
+    if (state.activeTheme === 'y2k-lime') state.frameBgColor = '#7cd93a';
+    else if (state.activeTheme === 'retro-stripes') state.frameBgColor = '#eae1d4';
+    else if (state.activeTheme === 'cyber-gliam') state.frameBgColor = '#ffe3ec';
+    else state.frameBgColor = '#ffffff';
 
-// ==========================================================================
-// 6. EVENT LISTENERS: GANTI WARNA & TEMA BINGKAI SECARA INSTAN (FIXED!)
-// ==========================================================================
-document.querySelectorAll('.color-dot').forEach(dot => {
-  dot.addEventListener('click', () => {
-    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
-    dot.classList.add('active');
-    
-    state.frameBgColor = dot.dataset.color;
-    
-    // Penentuan tema motif berdasarkan warna yang diklik
-    if (state.frameBgColor === '#ffe3ec') {
-      state.activeTheme = 'y2k-lime';
-    } else if (state.frameBgColor === '#111111') {
-      state.activeTheme = 'retro-burgundy';
-    } else if (state.frameBgColor === '#e0aaff') {
-      state.activeTheme = 'soft-lilac';
-    } else {
-      state.activeTheme = 'plain-white';
-    }
-    
-    // PERBAIKAN: Langsung ubah style container pratinjau tanpa merender ulang kotak kosong!
     if (photostripContainer) {
-      photostripContainer.style.backgroundColor = state.frameBgColor;
       photostripContainer.setAttribute('data-active-theme', state.activeTheme);
     }
   });
 });
 
-// ==========================================================================
-// 7. NAVIGASI AWAL & MANAJEMEN AKSES WEBCAM
-// ==========================================================================
+document.querySelectorAll('.frame-card.option').forEach(card => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.frame-card.option').forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
+    state.selectedSlots = parseInt(card.dataset.slots);
+    initPhotostrip();
+  });
+});
+
 async function startCamera() {
   if (state.currentStream && state.currentStream !== "simulated") {
     state.currentStream.getTracks().forEach(track => track.stop());
   }
-
   const constraints = {
-    video: {
-      facingMode: state.facingMode,
-      width: { ideal: 1280 },
-      height: { ideal: 960 },
-      aspectRatio: 4/3
-    },
+    video: { facingMode: state.facingMode, width: { ideal: 1280 }, height: { ideal: 960 }, aspectRatio: 4/3 },
     audio: false
   };
-
   try {
     state.isSimulation = false;
     state.currentStream = await navigator.mediaDevices.getUserMedia(constraints);
     videoFeed.srcObject = state.currentStream;
-    videoFeed.play().catch(e => console.log("Gagal memutar video feed"));
+    videoFeed.play().catch(e => console.log(e));
   } catch (err) {
-    console.warn("Kamera beralih ke mode simulasi:", err);
     state.isSimulation = true;
     state.currentStream = "simulated";
     videoFeed.srcObject = null;
@@ -173,7 +130,6 @@ if (btnStartCapture) {
   btnStartCapture.addEventListener('click', async () => {
     stepSelection.classList.remove('active');
     stepBooth.classList.add('active');
-    
     state.capturedImages = [];
     state.currentSlotIndex = 0;
     
@@ -181,7 +137,7 @@ if (btnStartCapture) {
     document.getElementById('currentSlotIdx').textContent = '0';
     document.getElementById('progressFill').style.width = '0%';
     
-    initPhotostrip(); // Jalankan sekali saja di sini untuk menyiapkan wadah kotak
+    initPhotostrip();
     await startCamera();
   });
 }
@@ -197,16 +153,12 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    
     videoFeed.className = ''; 
     state.activeFilter = btn.dataset.filter;
     videoFeed.classList.add(state.activeFilter);
   });
 });
 
-// ==========================================================================
-// 8. LOGIKA TIMEOUT HITUNG MUNDUR & ACTION SHUTTER JEPRET
-// ==========================================================================
 if (btnTriggerPhoto) {
   btnTriggerPhoto.addEventListener('click', () => {
     if (state.currentSlotIndex >= state.selectedSlots) return;
@@ -219,7 +171,6 @@ function runSessionCountdown() {
   let count = parseInt(selectTimer.value) || 5;
   countdownDisplay.style.display = 'block';
   countdownDisplay.textContent = count;
-
   const timer = setInterval(() => {
     count--;
     if (count > 0) {
@@ -240,7 +191,7 @@ function captureFrame() {
 
   if (state.isSimulation) {
     const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    const colors = [['#a370f7', '#3a86ff'], ['#ff0055', '#ffe3ec'], ['#00f2fe', '#4facfe']];
+    const colors = [['#a370f7', '#3a86ff'], ['#ff0055', '#ffe3ec']];
     const setChoice = colors[state.currentSlotIndex % colors.length];
     gradient.addColorStop(0, setChoice[0]);
     gradient.addColorStop(1, setChoice[1]);
@@ -248,41 +199,27 @@ function captureFrame() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   } else {
     ctx.save();
-    
-    // Terapkan Filter Instagram Baru ke Engine Export Canvas
-    if (state.activeFilter === 'filter-paris') {
-      ctx.filter = 'brightness(1.12) contrast(0.92) saturate(1.05)';
-    } else if (state.activeFilter === 'filter-jakarta') {
-      ctx.filter = 'sepia(0.25) saturate(1.3) brightness(1.02) hue-rotate(-5deg)';
-    } else if (state.activeFilter === 'filter-losangeles') {
-      ctx.filter = 'contrast(1.25) saturate(1.35) brightness(0.98)';
-    } else if (state.activeFilter === 'filter-vintage-grain') {
-      ctx.filter = 'contrast(1.15) saturate(0.85) brightness(0.95) sepia(0.1)';
-    } else if (state.activeFilter === 'filter-cyber-glitch') {
-      ctx.filter = 'hue-rotate(130deg) saturate(1.7) contrast(1.2)';
-    } else if (state.activeFilter === 'filter-dreamy-cream') {
-      ctx.filter = 'brightness(1.06) saturate(0.9) contrast(0.95)';
-    }
+    if (state.activeFilter === 'filter-paris') ctx.filter = 'brightness(1.12) contrast(0.92) saturate(1.05)';
+    else if (state.activeFilter === 'filter-jakarta') ctx.filter = 'sepia(0.25) saturate(1.3) brightness(1.02) hue-rotate(-5deg)';
+    else if (state.activeFilter === 'filter-losangeles') ctx.filter = 'contrast(1.25) saturate(1.35) brightness(0.98)';
+    else if (state.activeFilter === 'filter-vintage-grain') ctx.filter = 'contrast(1.15) saturate(0.85) brightness(0.95) sepia(0.1)';
+    else if (state.activeFilter === 'filter-cyber-glitch') ctx.filter = 'hue-rotate(130deg) saturate(1.7) contrast(1.2)';
+    else if (state.activeFilter === 'filter-dreamy-cream') ctx.filter = 'brightness(1.06) saturate(0.9) contrast(0.95)';
 
     if (state.facingMode === 'user') {
       ctx.translate(canvas.width, 0);
       ctx.scale(-1, 1);
     }
-
     const videoW = videoFeed.videoWidth;
     const videoH = videoFeed.videoHeight;
     const targetRatio = canvas.width / canvas.height;
     const videoRatio = videoW / videoH;
-    
     let sx, sy, sw, sh;
     if (videoRatio > targetRatio) {
-      sh = videoH; sw = videoH * targetRatio;
-      sx = (videoW - sw) / 2; sy = 0;
+      sh = videoH; sw = videoH * targetRatio; sx = (videoW - sw) / 2; sy = 0;
     } else {
-      sw = videoW; sh = videoW / targetRatio;
-      sx = 0; sy = (videoH - sh) / 2;
+      sw = videoW; sh = videoW / targetRatio; sx = 0; sy = (videoH - sh) / 2;
     }
-
     ctx.drawImage(videoFeed, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
     ctx.restore();
   }
@@ -311,15 +248,11 @@ function finishPhotoSession() {
   }
   stepBooth.classList.remove('active');
   stepResult.classList.add('active');
-  renderMockupStrip(); // Gambar foto-foto asli di frame halaman download akhir
+  renderMockupStrip();
 }
 
-// ==========================================================================
-// 9. ADJUSTMENT SLIDER KECERAHAN & KONTRAS
-// ==========================================================================
 const rangeBright = document.getElementById('rangeBright');
 const rangeContrast = document.getElementById('rangeContrast');
-
 [rangeBright, rangeContrast].forEach(slider => {
   if (slider) {
     slider.addEventListener('input', () => {
@@ -330,9 +263,7 @@ const rangeContrast = document.getElementById('rangeContrast');
   }
 });
 
-// ==========================================================================
-// 10. GENERATE & EXPORT CANVAS (HIGH-RESOLUTION DOWNLOAD)
-// ==========================================================================
+// GENERATE DENGAN GRAFIK TEMA PAS DOWNLOAD KELUAR
 function generateFinalCanvas(format) {
   const images = document.querySelectorAll('.strip-img-item');
   if (images.length === 0) return;
@@ -340,87 +271,90 @@ function generateFinalCanvas(format) {
   const originalWidth = 800;
   const originalHeight = 600;
   const scale = 1.5; 
-  
   const targetImgW = originalWidth * scale;
   const targetImgH = originalHeight * scale;
   const padding = 40 * scale;
   const gap = 30 * scale;
-  const bottomSpace = 130 * scale;
+  const bottomSpace = 140 * scale;
 
   const canvas = document.createElement('canvas');
   canvas.width = targetImgW + (padding * 2);
   canvas.height = (targetImgH * images.length) + (gap * (images.length - 1)) + padding + bottomSpace;
-
   const ctx = canvas.getContext('2d');
 
-  ctx.fillStyle = state.frameBgColor;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // Rendring motif ornamen bingkai pada file hasil unduhan
+  // 1. Cetak Latar Belakang Berdasarkan Tema Grafis Terpilih
   if (state.activeTheme === 'y2k-lime') {
-    ctx.fillStyle = '#ffffff'; ctx.font = `bold ${22 * scale}px sans-serif`;
-    ctx.strokeStyle = '#000000'; ctx.lineWidth = 4 * scale;
-    ctx.strokeText("⚝ COOL ⚝", canvas.width - (140 * scale), 45 * scale);
-    ctx.fillText("⚝ COOL ⚝", canvas.width - (140 * scale), 45 * scale);
-  } else if (state.activeTheme === 'retro-burgundy') {
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
-    for (let x = 0; x < canvas.width; x += 25 * scale) {
-      for (let y = 0; y < canvas.height; y += 25 * scale) {
-        ctx.beginPath(); ctx.arc(x, y, 3 * scale, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#7cd93a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Pola bintik bintang putih kecil
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    for (let i = 0; i < canvas.width; i += 30) {
+      for (let j = 0; j < canvas.height; j += 30) {
+        if ((i+j)%60===0) ctx.fillRect(i, j, 3, 3);
       }
     }
-  } else if (state.activeTheme === 'soft-lilac') {
-    ctx.fillStyle = '#6b21a8'; ctx.font = `italic ${20 * scale}px sans-serif`;
-    ctx.fillText("💖 cloud 💖", canvas.width - (130 * scale), canvas.height - 40 * scale);
+  } else if (state.activeTheme === 'retro-stripes') {
+    ctx.fillStyle = '#eae1d4';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Cetak Garis Garis Merah Retro Diagonal
+    ctx.strokeStyle = '#bd3a2b';
+    ctx.lineWidth = 15;
+    for (let i = -canvas.height; i < canvas.width; i += 40) {
+      ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + canvas.height, canvas.height); ctx.stroke();
+    }
+  } else {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 
   let loadedCount = 0;
   images.forEach((img, index) => {
     const currentY = padding + (index * (targetImgH + gap));
     ctx.save();
+    
+    // Kliping Bentuk Oval Khusus Tema Y2K Idol Pop
+    if (state.activeTheme === 'y2k-lime') {
+      ctx.beginPath();
+      // Membuat path lingkaran/oval melengkung halus
+      ctx.ellipse(padding + (targetImgW/2), currentY + (targetImgH/2), targetImgW/2, targetImgH/2, 0, 0, Math.PI * 2);
+      ctx.clip();
+    }
+
     ctx.filter = `brightness(${rangeBright.value}%) contrast(${rangeContrast.value}%)`;
     ctx.drawImage(img, padding, currentY, targetImgW, targetImgH);
     ctx.restore();
+
+    // Gambar Border Putih jika Oval
+    if (state.activeTheme === 'y2k-lime') {
+      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 8;
+      ctx.beginPath(); ctx.ellipse(padding + (targetImgW/2), currentY + (targetImgH/2), targetImgW/2, targetImgH/2, 0, 0, Math.PI * 2); ctx.stroke();
+    }
     
     loadedCount++;
     if (loadedCount === images.length) {
-      const warnaTerang = ['#ffffff', '#ffe3ec', '#d8f3dc', '#e0aaff'];
-      ctx.fillStyle = warnaTerang.includes(state.frameBgColor) ? '#111111' : '#ffffff';
+      // Teks Ornamen Bawah Tema
+      if (state.activeTheme === 'y2k-lime') {
+        ctx.fillStyle = '#ff66b2'; ctx.font = `bold ${32 * scale}px sans-serif`;
+        ctx.textAlign = 'center'; ctx.shadowColor = '#000000'; ctx.shadowBlur = 4;
+        ctx.fillText("★ JAKE ★", canvas.width / 2, canvas.height - (50 * scale));
+      } else {
+        ctx.fillStyle = '#111111'; ctx.font = `bold ${22 * scale}px sans-serif`;
+        ctx.textAlign = 'center'; ctx.fillText("✨ SNAPGLOW PHOTOHOOTH ✨", canvas.width / 2, canvas.height - (50 * scale));
+      }
       
-      ctx.textAlign = 'center';
-      ctx.font = `bold ${24 * scale}px sans-serif`;
-      ctx.fillText("✨ SNAPGLOW AESTHETIC ✨", canvas.width / 2, canvas.height - (60 * scale));
-      
-      const today = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
-      ctx.font = `${18 * scale}px sans-serif`;
-      ctx.fillText(today, canvas.width / 2, canvas.height - (25 * scale));
-
-      const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
-      const fileExt = format === 'png' ? 'png' : 'jpg';
-      
-      const dataUrl = canvas.toDataURL(mimeType, 1.0);
+      const dataUrl = canvas.toDataURL(format === 'png' ? 'image/png' : 'image/jpeg', 1.0);
       const link = document.createElement('a');
-      link.download = `snapglow-${Date.now()}.${fileExt}`;
+      link.download = `snapglow-template-${Date.now()}.${format}`;
       link.href = dataUrl;
       link.click();
     }
   });
 }
 
-const btnDownloadJpg = document.getElementById('btnDownloadJpg');
-const btnDownloadPng = document.getElementById('btnDownloadPng');
-
-if (btnDownloadJpg) btnDownloadJpg.addEventListener('click', () => generateFinalCanvas('jpg'));
-if (btnDownloadPng) btnDownloadPng.addEventListener('click', () => generateFinalCanvas('png'));
-
+document.getElementById('btnDownloadJpg').addEventListener('click', () => generateFinalCanvas('jpg'));
+document.getElementById('btnDownloadPng').addEventListener('click', () => generateFinalCanvas('png'));
 document.getElementById('btnResetAll').addEventListener('click', () => {
-  stepResult.classList.remove('active');
-  stepSelection.classList.add('active');
-  state.capturedImages = [];
-  state.currentSlotIndex = 0;
+  stepResult.classList.remove('active'); stepSelection.classList.add('active');
+  state.capturedImages = []; state.currentSlotIndex = 0;
 });
-
-// Booting awal aplikasi saat dimuat pertama kali
-window.addEventListener('DOMContentLoaded', () => {
-  initPhotostrip();
-});
+window.addEventListener('DOMContentLoaded', () => { initPhotostrip(); });

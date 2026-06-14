@@ -661,3 +661,83 @@ body {
   flex-shrink: 0 !important; /* Tombol anti-gepeng saat di-scroll */
   min-height: 44px !important;
 }
+/* ==========================================================================
+   DESAIN TEMPLATE BINGKAI GRAFIS CUSTOM (K-POP & RETRO VIBES)
+   ========================================================================== */
+.theme-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.theme-btn {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.theme-btn.active {
+  background: #111111;
+  color: #ffffff;
+  border-color: #111111;
+}
+
+/* --- Variasi Background Photostrip Container --- */
+[data-active-theme="plain-white"] {
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+/* Tema Hijau K-Pop dengan Ornamen Oval */
+[data-active-theme="y2k-lime"] {
+  background-color: #7cd93a !important;
+  background-image: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.4) 1px, transparent 1px),
+                    radial-gradient(circle at 80% 40%, rgba(255,255,255,0.4) 1px, transparent 1px) !important;
+  background-size: 20px 20px !important;
+  position: relative;
+}
+[data-active-theme="y2k-lime"]::after {
+  content: '★ JAKE ★';
+  position: absolute;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Impact', sans-serif;
+  font-size: 24px;
+  color: #ff66b2;
+  text-shadow: 2px 2px 0px #000;
+}
+
+/* Tema Retro Stripes (Garis Merah/Krem) */
+[data-active-theme="retro-stripes"] {
+  background-color: #eae1d4 !important;
+  background-image: repeating-linear-gradient(45deg, #bd3a2b, #bd3a2b 10px, #eae1d4 10px, #eae1d4 20px) !important;
+}
+
+/* Tema Cyber Glam Pink Star */
+[data-active-theme="cyber-glam"] {
+  background-color: #ffe3ec !important;
+  background-image: linear-gradient(90deg, rgba(255,102,178,0.1) 1px, transparent 1px) !important;
+  background-size: 15px 15px !important;
+}
+
+/* Mengubah Kotak Foto Menjadi Agak Oval/Rounded Sesuai Tema */
+[data-active-theme="y2k-lime"] .strip-img-item, 
+[data-active-theme="y2k-lime"] .strip-photo-slot {
+  border-radius: 50% / 15% !important; /* Efek Foto Oval ala K-Pop Booth */
+  border: 4px solid #ffffff;
+  box-shadow: 3px 3px 0px rgba(0,0,0,0.15);
+}
+
+[data-active-theme="retro-stripes"] .strip-img-item, 
+[data-active-theme="retro-stripes"] .strip-photo-slot {
+  border: 5px solid #ffffff;
+}
