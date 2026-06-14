@@ -822,3 +822,49 @@ body {
 .filter-vintage-grain { filter: contrast(1.15) saturate(0.85) brightness(0.95) sepia(0.1) !important; }
 .filter-cyber-glitch { filter: hue-rotate(130deg) saturate(1.7) contrast(1.2) !important; }
 .filter-dreamy-cream { filter: brightness(1.06) saturate(0.9) contrast(0.95) !important; }
+/* Styling Tombol Shutter Utama */
+.btn-shutter {
+  width: 100%;
+  padding: 15px 20px;
+  background: #ff4757;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+  transition: all 0.2s ease;
+}
+
+.btn-shutter:hover {
+  background: #ff6b81;
+  transform: translateY(-2px);
+}
+
+.btn-shutter:disabled {
+  background: #ced6e0;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* Grid buat buletan pilihan warna */
+.color-picker-grid {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.color-dot {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.color-dot.active {
+  transform: scale(1.2);
+  outline: 3px solid #ff4757;
+  outline-offset: 2px;
+}

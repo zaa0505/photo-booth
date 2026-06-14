@@ -1,6 +1,6 @@
 /**
  * SnapGlow - Photobooth Core Script
- * Version: 2.11 (Anti-Crash & Safe Element Protection Edition)
+ * Version: 2.12 (Final Safe Synced Edition)
  */
 
 if ('serviceWorker' in navigator) {
@@ -23,24 +23,10 @@ const state = {
   isSimulation: false
 };
 
-// ==========================================================================
-// SAFE DOM SELECTOR FUNCTION (Biar ga crash pas ada ID yang beda/hilang)
-// ==========================================================================
 const safeGet = (id) => document.getElementById(id) || { addEventListener: () => {}, style: {}, classList: { remove:()=>{}, add:()=>{} } };
 
-const stepSelection = safeGet('stepSelection');
-const stepBooth = safeGet('stepBooth');
-const stepResult = safeGet('stepResult');
-const videoFeed = safeGet('videoFeed');
-const photostripContainer = safeGet('photostripContainer');
-const flashOverlay = safeGet('flashOverlay');
-const countdownDisplay = safeGet('countdownDisplay');
-const btnTriggerPhoto = safeGet('btnTriggerPhoto');
-const selectTimer = safeGet('selectTimer');
-const btnStartCapture = safeGet('btnStartCapture');
-
 // ==========================================================================
-// RENDER INITIAL EMPTY STRIP
+// INITIALIZE & MOCKUP STRIP
 // ==========================================================================
 function initPhotostrip() {
   const container = document.getElementById('photostripContainer');
@@ -63,9 +49,6 @@ function initPhotostrip() {
   }
 }
 
-// ==========================================================================
-// RENDER FINAL CAPTURED STRIP
-// ==========================================================================
 function renderMockupStrip() {
   const container = document.getElementById('photostripContainer');
   if (!container) return;
@@ -92,22 +75,27 @@ function renderMockupStrip() {
 }
 
 // ==========================================================================
-// BIND EVENT LISTENERS (DIPASTIKAN BISA DIKLIK DAN AKTIF)
+// EVENT LISTENERS UTAMA (BINGKAI, LAYOUT, FILTER)
 // ==========================================================================
 
-// Pilihan Warna Bingkai (.color-dot)
-document.querySelectorAll('.color-dot').forEach(dot => {
-  dot.addEventListener('click', () => {
-    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
-    dot.classList.add('active');
-    
-    state.frameBgColor = dot.dataset.color || '#ffffff';
-    const container = document.getElementById('photostripContainer');
-    if (container) {
-      container.style.backgroundColor = state.frameBgColor;
-    }
+// FIX BINGKAI: Deteksi semua elemen klik bingkai, baik berbentuk bulat (.color-dot) maupun tombol (.theme-btn)
+function bindFrameSelection() {
+  const frameTargets = document.querySelectorAll('.color-dot, .theme-btn');
+  frameTargets.forEach(dot => {
+    dot.addEventListener('click', () => {
+      frameTargets.forEach(d => d.classList.remove('active'));
+      dot.classList.add('active');
+      
+      // Ambil data warna dari attribute data-color
+      state.frameBgColor = dot.dataset.color || '#ffffff';
+      
+      const container = document.getElementById('photostripContainer');
+      if (container) {
+        container.style.backgroundColor = state.frameBgColor;
+      }
+    });
   });
-});
+}
 
 // Pilihan Jumlah Slot Layout
 document.querySelectorAll('.frame-card.option').forEach(card => {
@@ -119,7 +107,7 @@ document.querySelectorAll('.frame-card.option').forEach(card => {
   });
 });
 
-// Pilihan Filter Instagram
+// Pilihan Filter Efek Instagram
 document.querySelectorAll('.filter-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -135,7 +123,7 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
 });
 
 // ==========================================================================
-// WEBCAM ENGINE ENGINE
+// ENGINE KAMERA & SHUTTER JEPRAK-JEPREK
 // ==========================================================================
 async function startCamera() {
   const video = document.getElementById('videoFeed');
@@ -184,29 +172,19 @@ if (startBtn) {
   });
 }
 
-const switchBtn = document.getElementById('btnSwitchCam');
-if (switchBtn) {
-  switchBtn.addEventListener('click', async () => {
-    if (state.isSimulation) return;
-    const video = document.getElementById('videoFeed');
-    state.facingMode = (state.facingMode === 'user') ? 'environment' : 'user';
-    if (video) {
-      video.style.transform = (state.facingMode === 'user') ? 'scaleX(-1)' : 'none';
-    }
-    await startCamera();
-  });
-}
-
-// ==========================================================================
-// LOGIKA SHUTTER JEPRET & COUNTDOWN
-// ==========================================================================
-const shutterBtn = document.getElementById('btnTriggerPhoto');
-if (shutterBtn) {
-  shutterBtn.addEventListener('click', () => {
-    if (state.currentSlotIndex >= state.selectedSlots) return;
-    shutterBtn.disabled = true;
-    runSessionCountdown();
-  });
+// LOGIKA COUNTDOWN & SHUTTER JEPRET
+// Kita pakai gabungan deteksi ID 'btnTriggerPhoto' atau class '.btn-shutter' biar aman
+function initShutterButton() {
+  const shutterBtn = document.getElementById('btnTriggerPhoto') || document.querySelector('.btn-trigger, .shutter-btn, [id*="Trigger"]');
+  if (shutterBtn) {
+    // Pastikan tombolnya kelihatan di layar
+    shutterBtn.style.display = "block"; 
+    shutterBtn.addEventListener('click', () => {
+      if (state.currentSlotIndex >= state.selectedSlots) return;
+      shutterBtn.disabled = true;
+      runSessionCountdown();
+    });
+  }
 }
 
 function runSessionCountdown() {
@@ -286,10 +264,10 @@ function captureFrame() {
   const flash = document.getElementById('flashOverlay');
   if (flash) {
     flash.classList.add('active');
-    setTimeout(() => flash.classList.remove('active'), 300);
+    setTimeout(() => flashOverlay.classList.remove('active'), 300);
   }
 
-  const shutBtn = document.getElementById('btnTriggerPhoto');
+  const shutBtn = document.getElementById('btnTriggerPhoto') || document.querySelector('.btn-trigger, .shutter-btn, [id*="Trigger"]');
   if (state.currentSlotIndex < state.selectedSlots) {
     setTimeout(() => { if (shutBtn) shutBtn.disabled = false; runSessionCountdown(); }, 1500);
   } else {
@@ -299,7 +277,6 @@ function captureFrame() {
 }
 
 function finishPhotoSession() {
-  const video = document.getElementById('videoFeed');
   if (state.currentStream && state.currentStream !== "simulated") {
     state.currentStream.getTracks().forEach(track => track.stop());
   }
@@ -309,24 +286,7 @@ function finishPhotoSession() {
 }
 
 // ==========================================================================
-// ADJUSTMENT ADJUST SLIDER
-// ==========================================================================
-const rangeBright = document.getElementById('rangeBright');
-const rangeContrast = document.getElementById('rangeContrast');
-[rangeBright, rangeContrast].forEach(slider => {
-  if (slider) {
-    slider.addEventListener('input', () => {
-      document.querySelectorAll('.strip-img-item').forEach(img => {
-        const bVal = rangeBright ? rangeBright.value : 100;
-        const cVal = rangeContrast ? rangeContrast.value : 100;
-        img.style.filter = `brightness(${bVal}%) contrast(${cVal}%)`;
-      });
-    });
-  }
-});
-
-// ==========================================================================
-// EXPORT DATA CANVAS DOWNLOAD
+// EXPORT HIGH RESOLUTION IMAGE
 // ==========================================================================
 function generateFinalCanvas(format) {
   const images = document.querySelectorAll('.strip-img-item');
@@ -353,6 +313,8 @@ function generateFinalCanvas(format) {
   images.forEach((img, index) => {
     const currentY = padding + (index * (targetImgH + gap));
     ctx.save();
+    const rangeBright = document.getElementById('rangeBright');
+    const rangeContrast = document.getElementById('rangeContrast');
     const bVal = rangeBright ? rangeBright.value : 100;
     const cVal = rangeContrast ? rangeContrast.value : 100;
     ctx.filter = `brightness(${bVal}%) contrast(${cVal}%)`;
@@ -381,19 +343,24 @@ function generateFinalCanvas(format) {
   });
 }
 
-const dJpg = document.getElementById('btnDownloadJpg');
-const dPng = document.getElementById('btnDownloadPng');
-if (dJpg) dJpg.addEventListener('click', () => generateFinalCanvas('jpg'));
-if (dPng) dPng.addEventListener('click', () => generateFinalCanvas('png'));
+// BIND ON LOAD
+window.addEventListener('DOMContentLoaded', () => { 
+  initPhotostrip(); 
+  bindFrameSelection();
+  initShutterButton();
 
-const resetBtn = document.getElementById('btnResetAll');
-if (resetBtn) {
-  resetBtn.addEventListener('click', () => {
-    safeGet('stepResult').classList.remove('active'); 
-    safeGet('stepSelection').classList.add('active');
-    state.capturedImages = []; 
-    state.currentSlotIndex = 0;
-  });
-}
+  const dJpg = document.getElementById('btnDownloadJpg');
+  const dPng = document.getElementById('btnDownloadPng');
+  if (dJpg) dJpg.addEventListener('click', () => generateFinalCanvas('jpg'));
+  if (dPng) dPng.addEventListener('click', () => generateFinalCanvas('png'));
 
-window.addEventListener('DOMContentLoaded', () => { initPhotostrip(); });
+  const resetBtn = document.getElementById('btnResetAll');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      safeGet('stepResult').classList.remove('active'); 
+      safeGet('stepSelection').classList.add('active');
+      state.capturedImages = []; 
+      state.currentSlotIndex = 0;
+    });
+  }
+});

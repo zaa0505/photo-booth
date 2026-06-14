@@ -53,27 +53,42 @@
       </div>
     </section>
 
- <!-- Halaman Tempat Memotret (Step Booth) -->
 <div id="stepBooth" class="step-view">
   <div class="booth-layout">
     
-    <!-- AREA KAMERA ORIGINAL -->
     <div class="camera-box">
-      <!-- Video Feed Kamera -->
       <video id="videoFeed" autoplay playsinline class="filter-normal"></video>
-      
-      <!-- Flash Efek -->
       <div id="flashOverlay"></div>
-      
-      <!-- Hitung Mundur -->
       <div id="countdownDisplay" style="display: none;">5</div>
     </div>
 
-    <!-- AREA SIDEBAR UTAMA (Tombol filter & trigger bawaan kamu) -->
     <div class="booth-sidebar">
-      <!-- ... tombol jepret, timer, dan filter bawaan kamu tetap di sini ... -->
-    </div>
+      
+      <div class="sidebar-block text-center">
+        <label for="selectTimer" style="display:block; margin-bottom: 5px; font-weight: bold;">⏱️ Atur Timer:</label>
+        <select id="selectTimer" class="form-control" style="margin-bottom: 10px; width: 100%;">
+          <option value="3">3 Detik</option>
+          <option value="5" selected>5 Detik</option>
+          <option value="7">7 Detik</option>
+        </select>
+        
+        <button id="btnTriggerPhoto" class="btn-shutter">
+          📸 AMBIL FOTO (<span id="currentSlotIdx">0</span>/<span id="totalSlotCount">4</span>)
+        </button>
+      </div>
 
+      <div class="sidebar-block">
+        <h3>🎨 Pilih Warna Bingkai</h3>
+        <div class="color-picker-grid">
+          <div class="color-dot active" data-color="#ffffff" style="background-color: #ffffff; border: 1px solid #ccc;"></div>
+          <div class="color-dot" data-color="#111111" style="background-color: #111111;"></div>
+          <div class="color-dot" data-color="#ffe3ec" style="background-color: #ffe3ec;"></div>
+          <div class="color-dot" data-color="#d8f3dc" style="background-color: #d8f3dc;"></div>
+          <div class="color-dot" data-color="#e0aaff" style="background-color: #e0aaff;"></div>
+        </div>
+      </div>
+
+    </div>
   </div>
 </div>
 
