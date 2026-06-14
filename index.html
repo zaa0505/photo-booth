@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>SnapGlow — Modern Aesthetic Photobooth</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
@@ -26,13 +25,14 @@
   </header>
 
   <main class="main-container">
-    
+
+    <!-- ============ STEP 1: PILIH LAYOUT ============ -->
     <section id="stepSelection" class="step-card active">
       <div class="section-title">
         <h2>Pilih Layout Frame</h2>
         <p>Tentukan gaya photostrip modern yang kamu inginkan</p>
       </div>
-      
+
       <div class="frame-grid">
         <div class="frame-card option" data-slots="2">
           <div class="frame-preview-mock tworow"><span></span><span></span></div>
@@ -53,82 +53,69 @@
       </div>
     </section>
 
+    <!-- ============ STEP 2: BOOTH (KAMERA) ============ -->
     <section id="stepBooth" class="step-card">
+      <div class="section-title">
+        <h2>Smile! 📸</h2>
+        <p>Pilih filter &amp; bingkai favoritmu, lalu mulai jepret</p>
+      </div>
+
       <div class="booth-layout">
-        
+
         <div class="camera-box">
-          <div class="preview-container">
-            <video id="videoFeed" autoplay playsinline class="filter-normal"></video>
-            <div id="liveFrameOverlay" class="live-frame-overlay" data-active-theme="plain-white"></div>
-            <div id="countdownDisplay" class="countdown-display">5</div>
-          </div>
-          
-          <div class="progress-box">
-            <p>Sesi Foto: <span id="currentSlotIdx">0</span>/<span id="totalSlotCount">4</span></p>
-            <div class="progress-bar"><div id="progressFill" style="width: 0%"></div></div>
-          </div>
+          <video id="videoFeed" autoplay playsinline muted class="filter-normal"></video>
+          <div id="liveFrameOverlay" class="live-frame-overlay"></div>
+          <div id="countdownDisplay" class="countdown-display">5</div>
         </div>
 
         <div class="booth-sidebar">
-          
-          <div class="sidebar-block text-center">
-            <label for="selectTimer" style="display:block; margin-bottom: 8px; font-weight: bold; font-size: 0.9rem;">⏱️ Atur Timer:</label>
-            <select id="selectTimer" class="form-control" style="margin-bottom: 12px; width: 100%; padding: 8px; border-radius: 6px;">
+
+          <div class="sidebar-block">
+            <h3>⏱️ Atur Timer</h3>
+            <select id="selectTimer" class="form-control" style="width:100%;">
               <option value="3">3 Detik</option>
               <option value="5" selected>5 Detik</option>
               <option value="7">7 Detik</option>
             </select>
-            
+          </div>
+
+          <div class="sidebar-block">
+            <h3>🎨 Filter Ala Instagram</h3>
+            <div id="filterScroll" class="filter-scroll"></div>
+          </div>
+
+          <div class="sidebar-block">
+            <h3>🖼️ Pilih Bingkai (Frame)</h3>
+            <div id="themeGallery" class="theme-gallery"></div>
+          </div>
+
+          <div class="sidebar-block progress-box">
+            <p>Sesi Foto: <span id="currentSlotIdx">0</span>/<span id="totalSlotCount">4</span></p>
+            <div class="progress-bar"><div id="progressFill" style="width: 0%"></div></div>
             <button id="btnTriggerPhoto" class="btn-shutter">
               📸 AMBIL FOTO
             </button>
           </div>
 
-          <div class="sidebar-block">
-            <h3>🎨 Pilihan Warna</h3>
-            <div class="color-picker-grid">
-              <div class="color-dot active" data-color="#ffffff" style="background-color: #ffffff; border: 1px solid #ccc;"></div>
-              <div class="color-dot" data-color="#111111" style="background-color: #111111;"></div>
-              <div class="color-dot" data-color="#ffe3ec" style="background-color: #ffe3ec;"></div>
-              <div class="color-dot" data-color="#d8f3dc" style="background-color: #d8f3dc;"></div>
-              <div class="color-dot" data-color="#e0aaff" style="background-color: #e0aaff;"></div>
-            </div>
-          </div>
+        </div>
+      </div>
+    </section>
 
-          <div class="sidebar-block">
-            <h3>🖼️ Desain Bingkai (Template)</h3>
-            <div class="theme-gallery">
-              <button class="theme-btn active" data-theme="plain-white">🤍 Minimalist White</button>
-              <button class="theme-btn" data-theme="y2k-lime">💚 Y2K Idol Pop (Green Neon)</button>
-              <button class="theme-btn" data-theme="retro-stripes">🧡 Retro Stripes (Vintage)</button>
-              <button class="theme-btn" data-theme="cyber-glam">💖 Cyber Glam (Pink Star)</button>
-            </div>
-          </div>
-
-          <div class="sidebar-block">
-            <h3>✨ Filter Real-Time</h3>
-            <div class="filter-scroll">
-              <button class="filter-btn active" data-filter="filter-normal">Normal</button>
-              <button class="filter-btn" data-filter="filter-paris">Paris (Smooth Glow)</button>
-              <button class="filter-btn" data-filter="filter-jakarta">Jakarta (Warm Gold)</button>
-              <button class="filter-btn" data-filter="filter-losangeles">Los Angeles (Analog)</button>
-              <button class="filter-btn" data-filter="filter-vintage-grain">Vintage Grain</button>
-              <button class="filter-btn" data-filter="filter-cyber-glitch">Cyber Neon Glitch</button>
-              <button class="filter-btn" data-filter="filter-dreamy-cream">Dreamy Cream</button>
-            </div>
-          </div>
-
-        </div> </div> </section>
-
+    <!-- ============ STEP 3: HASIL & EDIT ============ -->
     <section id="stepResult" class="step-card">
+      <div class="section-title">
+        <h2>Hasil Photostrip Kamu ✨</h2>
+        <p>Tambahkan stiker, atur pencahayaan, lalu unduh</p>
+      </div>
+
       <div class="result-layout">
-        
+
         <div class="strip-preview-area">
-          <div id="photostripContainer" class="photostrip-canvas-mockup" data-active-theme="plain-white">
-            </div>
+          <div id="photostripContainer" class="photostrip-canvas-mockup" data-theme="minimal-white"></div>
         </div>
 
         <div class="editor-sidebar">
+
           <div class="sidebar-block">
             <h3>✨ Tambah Stiker / Teks</h3>
             <div class="sticker-shelf">
@@ -137,33 +124,34 @@
               <button class="sticker-item" data-type="emoji">🕶️</button>
               <button class="sticker-item" data-type="emoji">🐱</button>
               <button class="sticker-item" data-type="emoji">⚡</button>
+              <button class="sticker-item" data-type="emoji">🌸</button>
+              <button class="sticker-item" data-type="emoji">⭐</button>
+              <button class="sticker-item" data-type="text">🏷️ +Teks</button>
             </div>
-            <p class="hint-text">*Fitur tambahan penempelan stiker mockup dekorasi strip foto.</p>
+            <p class="hint-text">*Klik stiker untuk menambahkannya ke dalam frame, lalu drag untuk memindahkan posisinya. Klik ikon ❌ untuk menghapus.</p>
           </div>
 
-        <div class="sidebar-block">
-  <h3>⚙️ Penyesuaian Gambar</h3>
-  <div class="range-control">
-    <label>Kecerahan (Brightness)</label>
-    <input type="range" id="rangeBright" min="50" max="150" value="100">
-  </div>
-  <div class="range-control">
-    <label>Kontras (Contrast)</label>
-    <input type="range" id="rangeContrast" min="50" max="150" value="100">
-  </div>
-  <div class="range-control">
-    <label>Saturasi Warna (Saturation)</label>
-    <input type="range" id="rangeSat" min="0" max="200" value="100">
-  </div>
-</div>
-
-          <div class="action-footer">
-            <button id="btnDownloadJpg" class="btn btn-secondary flex-1">Unduh JPG</button>
-            <button id="btnDownloadPng" class="btn btn-primary flex-1">Unduh PNG</button>
+          <div class="sidebar-block">
+            <h3>⚙️ Penyesuaian Gambar</h3>
+            <div class="range-control">
+              <label>Kecerahan (Brightness) <span class="val" id="valBright">100%</span></label>
+              <input type="range" id="rangeBright" min="50" max="150" value="100">
+            </div>
+            <div class="range-control">
+              <label>Kontras (Contrast) <span class="val" id="valContrast">100%</span></label>
+              <input type="range" id="rangeContrast" min="50" max="150" value="100">
+            </div>
           </div>
-          <button id="btnResetAll" class="btn btn-link">🔄 Mulai Sesi Baru</button>
+
+          <div class="sidebar-block">
+            <div class="action-footer">
+              <button id="btnDownloadJpg" class="btn btn-secondary flex-1">Unduh JPG</button>
+              <button id="btnDownloadPng" class="btn btn-primary flex-1">Unduh PNG</button>
+            </div>
+            <button id="btnResetAll" class="btn btn-link">🔄 Mulai Sesi Baru</button>
+          </div>
+
         </div>
-
       </div>
     </section>
 
