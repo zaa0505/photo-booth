@@ -385,4 +385,42 @@ function generateFinalCanvas(format) {
     loadedCount++;
     if (loadedCount === images.length) {
       const warnaTerang = ['#ffffff', '#ffe3ec', '#d8f3dc', '#e0aaff'];
-      ctx.fillStyle = warnaTerang.includes(state.frameBgColor) ? '#111
+      ctx.fillStyle = warnaTerang.includes(state.frameBgColor) ? '#111111' : '#ffffff';
+      
+      ctx.textAlign = 'center';
+      ctx.font = `bold ${24 * scale}px sans-serif`;
+      ctx.fillText("✨ SNAPGLOW AESTHETIC ✨", canvas.width / 2, canvas.height - (60 * scale));
+      
+      const today = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
+      ctx.font = `${18 * scale}px sans-serif`;
+      ctx.fillText(today, canvas.width / 2, canvas.height - (25 * scale));
+
+      const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
+      const fileExt = format === 'png' ? 'png' : 'jpg';
+      
+      const dataUrl = canvas.toDataURL(mimeType, 1.0);
+      const link = document.createElement('a');
+      link.download = `snapglow-${Date.now()}.${fileExt}`;
+      link.href = dataUrl;
+      link.click();
+    }
+  });
+}
+
+const btnDownloadJpg = document.getElementById('btnDownloadJpg');
+const btnDownloadPng = document.getElementById('btnDownloadPng');
+
+if (btnDownloadJpg) btnDownloadJpg.addEventListener('click', () => generateFinalCanvas('jpg'));
+if (btnDownloadPng) btnDownloadPng.addEventListener('click', () => generateFinalCanvas('png'));
+
+document.getElementById('btnResetAll').addEventListener('click', () => {
+  stepResult.classList.remove('active');
+  stepSelection.classList.add('active');
+  state.capturedImages = [];
+  state.currentSlotIndex = 0;
+});
+
+// Booting awal aplikasi saat dimuat pertama kali
+window.addEventListener('DOMContentLoaded', () => {
+  initPhotostrip();
+});
