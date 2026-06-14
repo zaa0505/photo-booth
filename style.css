@@ -532,3 +532,72 @@ body {
   border-color: #3a86ff;
   box-shadow: 0 0 10px rgba(58, 134, 255, 0.5);
 }
+/* ==========================================================================
+   DESAIN FRAME BERMOTIF (ANTI FLAT)
+   ========================================================================== */
+.theme-palette {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.theme-dot {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.2);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.theme-dot.active {
+  transform: scale(1.15);
+  border-color: #3a86ff;
+  box-shadow: 0 0 15px rgba(58, 134, 255, 0.6);
+}
+
+/* Pola Hiasan Tambahan di Atas Photostrip Mockup */
+.photostrip-canvas-mockup {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* 1. TEMA: Y2K POP LIME */
+.photostrip-canvas-mockup[data-active-theme="y2k-lime"]::before {
+  content: "⚝ COOL ⚝";
+  position: absolute;
+  top: 15px; right: 15px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px; font-weight: bold; color: #000;
+  background: #fff; padding: 2px 6px; border: 2px solid #000; transform: rotate(5deg);
+}
+.photostrip-canvas-mockup[data-active-theme="y2k-lime"]::after {
+  content: "HBD !!";
+  position: absolute;
+  bottom: 65px; left: 20px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px; font-weight: 900; color: #fff;
+  text-shadow: 2px 2px 0px #000; transform: rotate(-8deg);
+}
+
+/* 2. TEMA: RETRO BURGUNDY */
+.photostrip-canvas-mockup[data-active-theme="retro-burgundy"] {
+  background-image: radial-gradient(rgba(255,255,255,0.15) 15%, transparent 16%);
+  background-size: 16px 16px;
+}
+.photostrip-canvas-mockup[data-active-theme="retro-burgundy"]::before {
+  content: "PHOTOBOOTH";
+  position: absolute;
+  top: 12px; left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px; font-weight: bold; letter-spacing: 2px; color: #f9e79f;
+}
+
+/* 3. TEMA: SOFT LILAC HEART */
+.photostrip-canvas-mockup[data-active-theme="soft-lilac"]::before {
+  content: "💖 cloud 💖";
+  position: absolute;
+  bottom: 60px; right: 25px;
+  font-size: 12px; color: #6b21a8; font-style: italic; opacity: 0.7;
+}

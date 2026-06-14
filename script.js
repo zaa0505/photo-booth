@@ -18,6 +18,7 @@ const state = {
   currentSlotIndex: 0,
   activeFilter: 'filter-normal',
   frameBgColor: '#ffffff',
+  activeTheme: 'plain-white', // Tambahkan ini untuk melacak tema aktif
   facingMode: 'user',
   isSimulation: false
 };
@@ -71,11 +72,20 @@ async function startCamera() {
 // ==========================================================================
 // 5. ALUR NAVIGASI & EVENT LISTENERS
 // ==========================================================================
-document.querySelectorAll('.frame-card.option').forEach(card => {
-  card.addEventListener('click', () => {
-    document.querySelectorAll('.frame-card.option').forEach(c => c.classList.remove('active'));
-    card.classList.add('active');
-    state.selectedSlots = parseInt(card.dataset.slots);
+// Ganti handler warna frame lama dengan pendeteksi tema bermotif baru
+document.querySelectorAll('.theme-dot').forEach(dot => {
+  dot.addEventListener('click', () => {
+    document.querySelectorAll('.theme-dot').forEach(d => d.classList.remove('active'));
+    dot.classList.add('active');
+    
+    state.frameBgColor = dot.dataset.color;
+    state.activeTheme = dot.dataset.theme;
+    
+    if (photostripContainer) {
+      photostripContainer.style.backgroundColor = state.frameBgColor;
+      // Set atribut data tema ke container agar efek CSS-nya langsung keluar di layar
+      photostripContainer.setAttribute('data-active-theme', state.activeTheme);
+    }
   });
 });
 
@@ -349,6 +359,7 @@ function generateFinalCanvas(format) {
 
   const ctx = canvas.getContext('2d');
 
+  // Background Frame Warna Terpilih
   ctx.fillStyle = state.frameBgColor;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
