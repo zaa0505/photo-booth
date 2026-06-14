@@ -19,7 +19,7 @@ const state = {
   activeFilter: 'filter-normal',
   frameBgColor: '#ffffff',
   facingMode: 'user',
-  isSimulation: false // Penanda jika kamera asli gagal/diblokir
+  isSimulation: false
 };
 
 // ==========================================================================
@@ -36,10 +36,9 @@ const btnTriggerPhoto = document.getElementById('btnTriggerPhoto');
 const selectTimer = document.getElementById('selectTimer');
 
 // ==========================================================================
-// 4. FUNGSI AKSES KAMERA (DENGAN FALLBACK SIMULASI)
+// 4. FUNGSI AKSES KAMERA
 // ==========================================================================
 async function startCamera() {
-  // Matikan stream kamera sebelumnya jika ada
   if (state.currentStream && state.currentStream !== "simulated") {
     state.currentStream.getTracks().forEach(track => track.stop());
   }
@@ -58,16 +57,11 @@ async function startCamera() {
     state.isSimulation = false;
     state.currentStream = await navigator.mediaDevices.getUserMedia(constraints);
     videoFeed.srcObject = state.currentStream;
-    // Jalankan video
     videoFeed.play().catch(e => console.log("Video play interrupted"));
   } catch (err) {
     console.warn("Kamera asli tidak dapat diakses, beralih ke Mode Simulasi:", err);
-    
-    // Aktifkan Mode Simulasi agar aplikasi tidak macet/freeze
     state.isSimulation = true;
     state.currentStream = "simulated";
-    
-    // Pasang gambar placeholder estetik pada elemen video
     videoFeed.srcObject = null;
     videoFeed.poster = "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=800";
     videoFeed.style.objectFit = "cover";
@@ -77,8 +71,6 @@ async function startCamera() {
 // ==========================================================================
 // 5. ALUR NAVIGASI & EVENT LISTENERS
 // ==========================================================================
-
-// Piliha Layout Frame
 document.querySelectorAll('.frame-card.option').forEach(card => {
   card.addEventListener('click', () => {
     document.querySelectorAll('.frame-card.option').forEach(c => c.classList.remove('active'));
@@ -87,20 +79,16 @@ document.querySelectorAll('.frame-card.option').forEach(card => {
   });
 });
 
-// Tombol Mulai Sesi Foto (Pindah Halaman Lebih Dulu, Baru Ambil Kamera)
+// Tombol Mulai Sesi Foto
 document.getElementById('btnStartCapture').addEventListener('click', async () => {
-  // Pindahkan halaman duluan agar UI tidak terasa delay/macet
   stepSelection.classList.remove('active');
   stepBooth.classList.add('active');
   
-  // Reset Data Sesi
   state.capturedImages = [];
   state.currentSlotIndex = 0;
   document.getElementById('totalSlotCount').textContent = state.selectedSlots;
   
   updateProgressBar();
-  
-  // Panggil kamera setelah UI berpindah
   await startCamera();
 });
 
@@ -146,12 +134,10 @@ function updateProgressBar() {
 }
 
 // ==========================================================================
-// 6. LOGIKA COUNTDOWN & SHUTTER JEPRET FOTO
+// 6. LOGIKA COUNTDOWN & SHUTTER JEPRET FOTO (FIXED)
 // ==========================================================================
 btnTriggerPhoto.addEventListener('click', () => {
   if (state.currentSlotIndex >= state.selectedSlots) return;
-  
-  // Disable tombol sementara biar user tidak klik berulang-ulang saat countdown
   btnTriggerPhoto.disabled = true;
   runSessionCountdown();
 });
@@ -180,7 +166,6 @@ function captureFrame() {
   const ctx = canvas.getContext('2d');
 
   if (state.isSimulation) {
-    // RENDER GRADASI ESTETIK JIKA MASUK MODE SIMULASI
     const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
     const colors = [['#a370f7', '#3a86ff'], ['#ff0055', '#ffe3ec'], ['#00f2fe', '#4facfe'], ['#ff0844', '#ffb199']];
     const setChoice = colors[state.currentSlotIndex % colors.length];
@@ -198,58 +183,43 @@ function captureFrame() {
     ctx.fillStyle = "rgba(255,255,255,0.7)";
     ctx.fillText("[ Mode Simulasi Aktif ]", canvas.width / 2, canvas.height / 2 + 20);
   } else {
-    // RENDER DARI KAMERA ASLI (ANTI GEPENG & FILTER AMAN)
     ctx.save();
-    
-    // 1. Ambil filter warna real-time (Normal, Vintage, B&W, dll) yang aktif di layar preview
     ctx.filter = getComputedStyle(videoFeed).filter;
 
-    // 2. Logika Mirroring jika menggunakan kamera depan
     if (state.facingMode === 'user') {
       ctx.translate(canvas.width, 0);
       ctx.scale(-1, 1);
     }
 
-    // 3. Rumus Deteksi Aspect Ratio & Auto Crop (Biar tidak gepeng)
     const videoW = videoFeed.videoWidth;
     const videoH = videoFeed.videoHeight;
-    
     const targetRatio = canvas.width / canvas.height;
     const videoRatio = videoW / videoH;
     
     let sx, sy, sw, sh;
-    
     if (videoRatio > targetRatio) {
-      // Jika video asli lebih lebar (lebar HP), potong bagian kiri & kanan
       sh = videoH;
       sw = videoH * targetRatio;
       sx = (videoW - sw) / 2;
       sy = 0;
     } else {
-      // Jika video asli lebih tinggi (tinggi HP), potong bagian atas & bawah
       sw = videoW;
       sh = videoW / targetRatio;
       sx = 0;
       sy = (videoH - sh) / 2;
     }
 
-    // 4. Gambar ke canvas dengan koordinat potong proporsional
     ctx.drawImage(videoFeed, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
-    
-    // Kembalikan posisi koordinat normal setelah mirroring selesai
     ctx.restore();
   }
 
-  // Masukkan hasil foto ke dalam array penyimpanan
   state.capturedImages.push(canvas.toDataURL('image/jpeg', 0.9));
   state.currentSlotIndex++;
   updateProgressBar();
 
-  // Efek Flash Layar
   flashOverlay.classList.add('active');
   setTimeout(() => flashOverlay.classList.remove('active'), 300);
 
-  // Cek sisa slot foto
   if (state.currentSlotIndex < state.selectedSlots) {
     setTimeout(() => { runSessionCountdown(); }, 1500);
   } else {
@@ -257,107 +227,6 @@ function captureFrame() {
     setTimeout(() => { finishPhotoSession(); }, 1000);
   }
 }
-
-  if (state.isSimulation) {
-    // RENDER GRADASI ESTETIK JIKA MASUK MODE SIMULASI
-    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    const colors = [['#a370f7', '#3a86ff'], ['#ff0055', '#ffe3ec'], ['#00f2fe', '#4facfe'], ['#ff0844', '#ffb199']];
-    const setChoice = colors[state.currentSlotIndex % colors.length];
-    
-    gradient.addColorStop(0, setChoice[0]);
-    gradient.addColorStop(1, setChoice[1]);
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 32px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText(`✨ Hasil Foto Ke-${state.currentSlotIndex + 1} ✨`, canvas.width / 2, canvas.height / 2 - 20);
-    ctx.font = "18px sans-serif";
-    ctx.fillStyle = "rgba(255,255,255,0.7)";
-    ctx.fillText("[ Mode Simulasi Aktif ]", canvas.width / 2, canvas.height / 2 + 20);
-  } else {
-    // RENDER DARI KAMERA ASLI (DENGAN FIX BIAR TIDAK GEPENG)
-    ctx.save();
-    
-    // Logika Mirroring jika menggunakan kamera depan
-    if (state.facingMode === 'user') {
-      ctx.translate(canvas.width, 0);
-      ctx.scale(-1, 1);
-    }
-    
-    // Ambil filter CSS yang sedang aktif pada elemen video
-    ctx.filter = getComputedStyle(videoFeed).filter;
-
-    // --- RUMUS DETEKSI ASPECT RATIO & AUTO CROP (ANTI GEPENG) ---
-    const videoW = videoFeed.videoWidth;
-    const videoH = videoFeed.videoHeight;
-    
-    const targetRatio = canvas.width / canvas.height;
-    const videoRatio = videoW / videoH;
-    
-    let sx, sy, sw, sh;
-    
-    if (videoRatio > targetRatio) {
-      // Jika video asli lebih lebar (lebar hp), potong bagian kiri & kanan
-      sh = videoH;
-      sw = videoH * targetRatio;
-      sx = (videoW - sw) / 2;
-      sy = 0;
-    } else {
-      // Jika video asli lebih tinggi (tinggi hp), potong bagian atas & bawah
-      sw = videoW;
-      sh = videoW / targetRatio;
-      sx = 0;
-      sy = (videoH - sh) / 2;
-    }
-
-    // Gambar ke canvas menggunakan koordinat crop (sx, sy, sw, sh)
-    ctx.drawImage(videoFeed, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
-    ctx.restore();
-  }
-
-  state.capturedImages.push(canvas.toDataURL('image/jpeg', 0.9));
-  state.currentSlotIndex++;
-  updateProgressBar();
-
-  // Efek Flash Layar
-  flashOverlay.classList.add('active');
-  setTimeout(() => flashOverlay.classList.remove('active'), 300);
-
-  // Cek sisa slot foto
-  if (state.currentSlotIndex < state.selectedSlots) {
-    setTimeout(() => { runSessionCountdown(); }, 1500);
-  } else {
-    btnTriggerPhoto.disabled = false;
-    setTimeout(() => { finishPhotoSession(); }, 1000);
-  }
-} {
-    // RENDER DARI KAMERA ASLI
-    if (state.facingMode === 'user') {
-      ctx.translate(canvas.width, 0);
-      ctx.scale(-1, 1);
-    }
-    ctx.filter = getComputedStyle(videoFeed).filter;
-    ctx.drawImage(videoFeed, 0, 0, canvas.width, canvas.height);
-  }
-
-  state.capturedImages.push(canvas.toDataURL('image/jpeg', 0.9));
-  state.currentSlotIndex++;
-  updateProgressBar();
-
-  // Efek Flash Layar
-  flashOverlay.classList.add('active');
-  setTimeout(() => flashOverlay.classList.remove('active'), 300);
-
-  // Cek sisa slot foto
-  if (state.currentSlotIndex < state.selectedSlots) {
-    setTimeout(() => { runSessionCountdown(); }, 1500);
-  } else {
-    btnTriggerPhoto.disabled = false;
-    setTimeout(() => { finishPhotoSession(); }, 1000);
-  }
-
 
 function finishPhotoSession() {
   if (state.currentStream && state.currentStream !== "simulated") {
@@ -388,7 +257,7 @@ function renderMockupStrip() {
 }
 
 // ==========================================================================
-// 7. INTERAKSI STIKER (DRAG & DROP UNTUK PC & MOBILE)
+// 7. INTERAKSI STIKER
 // ==========================================================================
 document.querySelectorAll('.sticker-item').forEach(item => {
   item.addEventListener('click', () => {
@@ -447,7 +316,7 @@ function setupDragEvents(el) {
 }
 
 // ==========================================================================
-// 8. GENERATE & DOWNLOAD PHOTOSTRIP KUALITAS TINGGI (CANVAS API)
+// 8. GENERATE & DOWNLOAD PHOTOSTRIP
 // ==========================================================================
 const rangeBright = document.getElementById('rangeBright');
 const rangeContrast = document.getElementById('rangeContrast');
@@ -480,24 +349,19 @@ function generateFinalCanvas(format) {
 
   const ctx = canvas.getContext('2d');
 
-  // Background Frame Warna Terpilih
   ctx.fillStyle = state.frameBgColor;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   let currentY = padding;
 
-  // Gambar semua foto ke canvas utama dengan filter slider aktif
   images.forEach(img => {
     ctx.save();
     ctx.filter = `brightness(${rangeBright.value}%) contrast(${rangeContrast.value}%)`;
-    
-    // Gunakan elemen gambar mockup yang sudah ada
     ctx.drawImage(img, padding, currentY, targetImgW, targetImgH);
     ctx.restore();
     currentY += targetImgH + gap;
   });
 
-  // Gambar semua stiker dekorasi sesuai posisi koordinat relatifnya
   const containerRect = photostripContainer.getBoundingClientRect();
   const stickers = document.querySelectorAll('.draggable-sticker');
   
@@ -508,21 +372,18 @@ function generateFinalCanvas(format) {
 
     ctx.save();
     if (stk.textContent.length > 2) {
-      // Style Teks Kustom
       ctx.fillStyle = 'rgba(0,0,0,0.6)';
       ctx.fillRect(relX * canvas.width, relY * canvas.height - (30 * scale), stk.textContent.length * 20 * scale, 46 * scale);
       ctx.fillStyle = '#ffffff';
       ctx.font = `bold ${32 * scale}px sans-serif`;
       ctx.fillText(stk.textContent, relX * canvas.width + 10, relY * canvas.height + 5);
     } else {
-      // Style Emoji
       ctx.font = `${50 * scale}px serif`;
       ctx.fillText(stk.textContent, relX * canvas.width, relY * canvas.height + (40 * scale));
     }
     ctx.restore();
   });
 
-  // Teks Cetak Watermark Akhir
   ctx.fillStyle = (state.frameBgColor === '#ffffff' || state.frameBgColor === '#ffe3ec' || state.frameBgColor === '#d8f3dc') ? '#111111' : '#ffffff';
   ctx.textAlign = 'center';
   ctx.font = `bold ${24 * scale}px sans-serif`;
@@ -532,7 +393,6 @@ function generateFinalCanvas(format) {
   ctx.font = `${18 * scale}px sans-serif`;
   ctx.fillText(today, canvas.width / 2, canvas.height - (25 * scale));
 
-  // Trigger Aksi Download File Ke Perangkat
   const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
   const fileExt = format === 'png' ? 'png' : 'jpg';
   
