@@ -53,23 +53,26 @@
       </div>
     </section>
 
-  <div id="stepBooth" class="step-view">
+ <!-- Halaman Tempat Memotret (Step Booth) -->
+<div id="stepBooth" class="step-view">
   <div class="booth-layout">
     
+    <!-- AREA KAMERA ORIGINAL -->
     <div class="camera-box">
-      <div class="preview-container" id="previewContainer">
-        <video id="videoFeed" autoplay playsinline class="filter-normal"></video>
-        
-        <div id="frameOverlay" class="live-frame-overlay" data-active-theme="plain-white"></div>
-        
-        <div id="flashOverlay"></div>
-        
-        <div id="countdownDisplay" style="display: none;">5</div>
-      </div>
+      <!-- Video Feed Kamera -->
+      <video id="videoFeed" autoplay playsinline class="filter-normal"></video>
+      
+      <!-- Flash Efek -->
+      <div id="flashOverlay"></div>
+      
+      <!-- Hitung Mundur -->
+      <div id="countdownDisplay" style="display: none;">5</div>
     </div>
 
+    <!-- AREA SIDEBAR UTAMA (Tombol filter & trigger bawaan kamu) -->
     <div class="booth-sidebar">
-      </div>
+      <!-- ... tombol jepret, timer, dan filter bawaan kamu tetap di sini ... -->
+    </div>
 
   </div>
 </div>

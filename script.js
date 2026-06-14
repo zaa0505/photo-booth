@@ -1,6 +1,6 @@
 /**
  * SnapGlow - Photobooth Core Script
- * Version: 2.8 (Graphic Templates Integrated Edition)
+ * Version: 2.10 (Rollback to Solid Stable Edition)
  */
 
 if ('serviceWorker' in navigator) {
@@ -16,7 +16,6 @@ const state = {
   currentSlotIndex: 0,
   activeFilter: 'filter-normal',
   frameBgColor: '#ffffff',
-  activeTheme: 'plain-white',
   facingMode: 'user',
   isSimulation: false
 };
@@ -35,7 +34,7 @@ const btnStartCapture = document.getElementById('btnStartCapture');
 function initPhotostrip() {
   if (!photostripContainer) return;
   photostripContainer.innerHTML = '';
-  photostripContainer.setAttribute('data-active-theme', state.activeTheme);
+  photostripContainer.style.backgroundColor = state.frameBgColor;
   
   for (let i = 0; i < state.selectedSlots; i++) {
     const slot = document.createElement('div');
@@ -55,17 +54,12 @@ function initPhotostrip() {
 function renderMockupStrip() {
   if (!photostripContainer) return;
   photostripContainer.innerHTML = '';
-  photostripContainer.setAttribute('data-active-theme', state.activeTheme);
+  photostripContainer.style.backgroundColor = state.frameBgColor;
 
   state.capturedImages.forEach(imgSrc => {
     const imgEl = document.createElement('img');
     if (imgSrc) imgEl.src = imgSrc;
     imgEl.className = 'strip-img-item';
-    imgEl.style.width = '100%';
-    imgEl.style.aspectRatio = '4/3';
-    imgEl.style.objectFit = 'cover';
-    imgEl.style.marginBottom = '15px';
-    imgEl.style.display = 'block';
     photostripContainer.appendChild(imgEl);
   });
 
@@ -76,22 +70,16 @@ function renderMockupStrip() {
   photostripContainer.appendChild(watermark);
 }
 
-// Event Listener Klik Pilihan Desain Tema Grafis
-document.querySelectorAll('.theme-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+// Handler Klik Pilihan Lingkaran Warna (.color-dot) - Mengubah instan tanpa ngerusak foto
+document.querySelectorAll('.color-dot').forEach(dot => {
+  dot.addEventListener('click', () => {
+    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+    dot.classList.add('active');
     
-    state.activeTheme = btn.dataset.theme;
+    state.frameBgColor = dot.dataset.color;
     
-    // Set warna dasar otomatis buat cadangan canvas ekspor
-    if (state.activeTheme === 'y2k-lime') state.frameBgColor = '#7cd93a';
-    else if (state.activeTheme === 'retro-stripes') state.frameBgColor = '#eae1d4';
-    else if (state.activeTheme === 'cyber-gliam') state.frameBgColor = '#ffe3ec';
-    else state.frameBgColor = '#ffffff';
-
     if (photostripContainer) {
-      photostripContainer.setAttribute('data-active-theme', state.activeTheme);
+      photostripContainer.style.backgroundColor = state.frameBgColor;
     }
   });
 });
@@ -149,12 +137,14 @@ document.getElementById('btnSwitchCam').addEventListener('click', async () => {
   await startCamera();
 });
 
+// Event Listener Filter Instagram Live Preview
 document.querySelectorAll('.filter-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    videoFeed.className = ''; 
+    
     state.activeFilter = btn.dataset.filter;
+    videoFeed.className = ''; 
     videoFeed.classList.add(state.activeFilter);
   });
 });
@@ -199,6 +189,7 @@ function captureFrame() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   } else {
     ctx.save();
+    
     if (state.activeFilter === 'filter-paris') ctx.filter = 'brightness(1.12) contrast(0.92) saturate(1.05)';
     else if (state.activeFilter === 'filter-jakarta') ctx.filter = 'sepia(0.25) saturate(1.3) brightness(1.02) hue-rotate(-5deg)';
     else if (state.activeFilter === 'filter-losangeles') ctx.filter = 'contrast(1.25) saturate(1.35) brightness(0.98)';
@@ -263,7 +254,7 @@ const rangeContrast = document.getElementById('rangeContrast');
   }
 });
 
-// GENERATE DENGAN GRAFIK TEMA PAS DOWNLOAD KELUAR
+// LOGIKA EKSPOR CANVAS STABIL (ANTI BLANK/HITAM)
 function generateFinalCanvas(format) {
   const images = document.querySelectorAll('.strip-img-item');
   if (images.length === 0) return;
@@ -275,76 +266,41 @@ function generateFinalCanvas(format) {
   const targetImgH = originalHeight * scale;
   const padding = 40 * scale;
   const gap = 30 * scale;
-  const bottomSpace = 140 * scale;
+  const bottomSpace = 130 * scale;
 
   const canvas = document.createElement('canvas');
   canvas.width = targetImgW + (padding * 2);
   canvas.height = (targetImgH * images.length) + (gap * (images.length - 1)) + padding + bottomSpace;
   const ctx = canvas.getContext('2d');
 
-  // 1. Cetak Latar Belakang Berdasarkan Tema Grafis Terpilih
-  if (state.activeTheme === 'y2k-lime') {
-    ctx.fillStyle = '#7cd93a';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    // Pola bintik bintang putih kecil
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-    for (let i = 0; i < canvas.width; i += 30) {
-      for (let j = 0; j < canvas.height; j += 30) {
-        if ((i+j)%60===0) ctx.fillRect(i, j, 3, 3);
-      }
-    }
-  } else if (state.activeTheme === 'retro-stripes') {
-    ctx.fillStyle = '#eae1d4';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    // Cetak Garis Garis Merah Retro Diagonal
-    ctx.strokeStyle = '#bd3a2b';
-    ctx.lineWidth = 15;
-    for (let i = -canvas.height; i < canvas.width; i += 40) {
-      ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + canvas.height, canvas.height); ctx.stroke();
-    }
-  } else {
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
+  // Isi warna latar belakang bingkai polos solid
+  ctx.fillStyle = state.frameBgColor || '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   let loadedCount = 0;
   images.forEach((img, index) => {
     const currentY = padding + (index * (targetImgH + gap));
     ctx.save();
-    
-    // Kliping Bentuk Oval Khusus Tema Y2K Idol Pop
-    if (state.activeTheme === 'y2k-lime') {
-      ctx.beginPath();
-      // Membuat path lingkaran/oval melengkung halus
-      ctx.ellipse(padding + (targetImgW/2), currentY + (targetImgH/2), targetImgW/2, targetImgH/2, 0, 0, Math.PI * 2);
-      ctx.clip();
-    }
-
     ctx.filter = `brightness(${rangeBright.value}%) contrast(${rangeContrast.value}%)`;
     ctx.drawImage(img, padding, currentY, targetImgW, targetImgH);
     ctx.restore();
-
-    // Gambar Border Putih jika Oval
-    if (state.activeTheme === 'y2k-lime') {
-      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 8;
-      ctx.beginPath(); ctx.ellipse(padding + (targetImgW/2), currentY + (targetImgH/2), targetImgW/2, targetImgH/2, 0, 0, Math.PI * 2); ctx.stroke();
-    }
     
     loadedCount++;
     if (loadedCount === images.length) {
-      // Teks Ornamen Bawah Tema
-      if (state.activeTheme === 'y2k-lime') {
-        ctx.fillStyle = '#ff66b2'; ctx.font = `bold ${32 * scale}px sans-serif`;
-        ctx.textAlign = 'center'; ctx.shadowColor = '#000000'; ctx.shadowBlur = 4;
-        ctx.fillText("★ JAKE ★", canvas.width / 2, canvas.height - (50 * scale));
-      } else {
-        ctx.fillStyle = '#111111'; ctx.font = `bold ${22 * scale}px sans-serif`;
-        ctx.textAlign = 'center'; ctx.fillText("✨ SNAPGLOW PHOTOHOOTH ✨", canvas.width / 2, canvas.height - (50 * scale));
-      }
+      const warnaTerang = ['#ffffff', '#ffe3ec', '#d8f3dc', '#e0aaff', '#f0f0f0'];
+      ctx.fillStyle = warnaTerang.includes(state.frameBgColor.toLowerCase()) ? '#111111' : '#ffffff';
       
+      ctx.textAlign = 'center';
+      ctx.font = `bold ${24 * scale}px sans-serif`;
+      ctx.fillText("✨ SNAPGLOW AESTHETIC ✨", canvas.width / 2, canvas.height - (60 * scale));
+      
+      const today = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
+      ctx.font = `${18 * scale}px sans-serif`;
+      ctx.fillText(today, canvas.width / 2, canvas.height - (25 * scale));
+
       const dataUrl = canvas.toDataURL(format === 'png' ? 'image/png' : 'image/jpeg', 1.0);
       const link = document.createElement('a');
-      link.download = `snapglow-template-${Date.now()}.${format}`;
+      link.download = `snapglow-solid-${Date.now()}.${format}`;
       link.href = dataUrl;
       link.click();
     }
