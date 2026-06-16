@@ -606,6 +606,13 @@ body {
   .app-header { padding: 15px 4%; }
   .step-card { padding: 20px; }
   .theme-gallery { grid-template-columns: repeat(2, 1fr); }
+
+  /* Kamera tetap proporsional di tablet */
+  .camera-box {
+    width: 100%;
+    max-width: 520px;
+    margin: 0 auto;
+  }
 }
 
 @media (max-width: 480px) {
@@ -614,4 +621,65 @@ body {
   .action-footer { flex-direction: column; gap: 10px; }
   .photostrip-canvas-mockup { width: 70vw; max-width: 260px; }
   .countdown-display { font-size: 4.5rem; }
+
+  /* Booth layout mobile: kamera compact & centered */
+  .step-card { padding: 16px 14px; }
+
+  .booth-layout {
+    gap: 16px;
+  }
+
+  .camera-box {
+    width: 100%;
+    max-width: 100%;
+    /* Batasi tinggi supaya tidak over-scroll */
+    aspect-ratio: 4/3;
+    max-height: 56vw;
+    margin: 0 auto;
+    border-radius: 14px;
+  }
+
+  #videoFeed {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Overlay countdown lebih kecil di mobile */
+  .countdown-display {
+    font-size: 3.8rem;
+  }
+
+  /* Sidebar nempel rapat di bawah kamera */
+  .booth-sidebar {
+    gap: 12px;
+  }
+
+  .sidebar-block {
+    padding: 14px 12px;
+  }
+
+  /* Filter chips lebih kompak */
+  .filter-chip .swatch {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+  }
+  .filter-chip {
+    width: 54px;
+  }
+
+  /* Theme gallery 2 kolom tetap tapi lebih compact */
+  .theme-gallery {
+    gap: 8px;
+  }
+  .theme-swatch {
+    height: 36px;
+  }
+
+  /* Tombol shutter full width & mudah dijangkau */
+  .btn-shutter {
+    padding: 14px 16px;
+    font-size: 0.95rem;
+  }
 }
