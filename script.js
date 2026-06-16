@@ -14,13 +14,39 @@ if ('serviceWorker' in navigator) {
 // (id sama dipakai untuk preview kamera & hasil capture, biar konsisten)
 // ==========================================================================
 const FILTERS = [
-  { id: 'normal',    label: 'Original',    css: 'none' },
-  { id: 'clarendon', label: 'Clarendon',   css: 'contrast(1.2) saturate(1.35) brightness(1.05)' },
-  { id: 'gingham',   label: 'Gingham',     css: 'sepia(0.2) saturate(0.9) brightness(1.05) contrast(0.92)' },
-  { id: 'noir',      label: 'B&W Noir',    css: 'grayscale(1) contrast(1.3) brightness(0.95)' },
-  { id: 'valencia',  label: 'Valencia',    css: 'sepia(0.25) saturate(1.3) brightness(1.08) contrast(1.05)' },
-  { id: 'cyberpop',  label: 'Cyber Neon',  css: 'hue-rotate(140deg) saturate(1.8) contrast(1.2)' },
-  { id: 'dreamy',    label: 'Dreamy Glow', css: 'brightness(1.1) saturate(0.85) contrast(0.92) blur(0.4px)' },
+  // — Dasar —
+  { id: 'normal',      label: 'Original',      css: 'none' },
+
+  // — Instagram Classics —
+  { id: 'clarendon',   label: 'Clarendon',      css: 'contrast(1.2) saturate(1.35) brightness(1.05)' },
+  { id: 'gingham',     label: 'Gingham',        css: 'sepia(0.2) saturate(0.9) brightness(1.05) contrast(0.92)' },
+  { id: 'juno',        label: 'Juno',           css: 'saturate(1.4) contrast(1.1) brightness(1.06) sepia(0.1)' },
+  { id: 'lark',        label: 'Lark',           css: 'brightness(1.12) contrast(0.9) saturate(1.15) hue-rotate(-8deg)' },
+  { id: 'reyes',       label: 'Reyes',          css: 'sepia(0.4) contrast(0.9) brightness(1.1) saturate(0.75)' },
+  { id: 'slumber',     label: 'Slumber',        css: 'saturate(0.66) brightness(1.05) sepia(0.3)' },
+  { id: 'toaster',     label: 'Toaster',        css: 'contrast(1.5) saturate(1.1) brightness(0.88) sepia(0.18)' },
+  { id: 'valencia',    label: 'Valencia',       css: 'sepia(0.25) saturate(1.3) brightness(1.08) contrast(1.05)' },
+  { id: 'walden',      label: 'Walden',         css: 'brightness(1.1) hue-rotate(-10deg) saturate(1.6) sepia(0.15)' },
+  { id: 'willow',      label: 'Willow',         css: 'grayscale(0.5) contrast(0.95) brightness(1.05) sepia(0.12)' },
+  { id: 'moon',        label: 'Moon',           css: 'grayscale(1) brightness(1.1) contrast(1.1)' },
+
+  // — Stylized / Creative —
+  { id: 'noir',        label: 'B&W Noir',       css: 'grayscale(1) contrast(1.35) brightness(0.93)' },
+  { id: 'cyberpop',    label: 'Cyber Neon',     css: 'hue-rotate(140deg) saturate(1.8) contrast(1.2)' },
+  { id: 'dreamy',      label: 'Dreamy Glow',    css: 'brightness(1.1) saturate(0.85) contrast(0.92) blur(0.4px)' },
+  { id: 'golden',      label: 'Golden Hour',    css: 'sepia(0.45) saturate(1.6) brightness(1.08) contrast(1.05) hue-rotate(-15deg)' },
+  { id: 'rosegold',    label: 'Rose Gold',      css: 'sepia(0.3) saturate(1.2) brightness(1.1) contrast(1.02) hue-rotate(-20deg)' },
+  { id: 'retrofilm',   label: 'Retro Film',     css: 'sepia(0.6) contrast(1.2) brightness(0.9) saturate(0.8)' },
+  { id: 'aqua',        label: 'Aqua Cool',      css: 'hue-rotate(180deg) saturate(1.4) brightness(1.05) contrast(1.1)' },
+  { id: 'purplehaze',  label: 'Purple Haze',    css: 'hue-rotate(260deg) saturate(1.5) brightness(1.0) contrast(1.1)' },
+  { id: 'pinkie',      label: 'Pinkie Pop',     css: 'hue-rotate(300deg) saturate(1.6) brightness(1.08) contrast(1.05)' },
+  { id: 'faded',       label: 'Faded Lo-Fi',    css: 'brightness(1.08) contrast(0.8) saturate(0.7) sepia(0.15)' },
+  { id: 'deepblue',    label: 'Deep Blue',      css: 'hue-rotate(210deg) saturate(1.6) brightness(0.95) contrast(1.15)' },
+  { id: 'minty',       label: 'Minty Fresh',    css: 'hue-rotate(120deg) saturate(1.3) brightness(1.08) contrast(1.0)' },
+  { id: 'ember',       label: 'Ember',          css: 'hue-rotate(-30deg) saturate(1.7) brightness(0.97) contrast(1.15)' },
+  { id: 'arctic',      label: 'Arctic',         css: 'brightness(1.15) saturate(0.6) contrast(1.05) hue-rotate(190deg)' },
+  { id: 'lemonade',    label: 'Lemonade',       css: 'brightness(1.12) saturate(1.4) hue-rotate(40deg) contrast(0.95)' },
+  { id: 'velvet',      label: 'Velvet',         css: 'brightness(0.85) contrast(1.3) saturate(1.4) hue-rotate(-25deg)' },
 ];
 
 // ==========================================================================
@@ -28,6 +54,7 @@ const FILTERS = [
 // decorations: posisi dalam persen (x/y) relatif ke photostrip
 // ==========================================================================
 const FRAMES = [
+  // ———— TERANG / SOFT ————
   {
     id: 'minimal-white', label: '🤍 Minimalist White',
     bg: '#ffffff', accent: '#ffffff', text: '#1a1a1a', pattern: null,
@@ -39,6 +66,7 @@ const FRAMES = [
     decorations: [
       { type: 'emoji', content: '💖', x: 12, y: 5,  size: 26, rotate: -12 },
       { type: 'emoji', content: '✨', x: 88, y: 6,  size: 22, rotate: 15 },
+      { type: 'emoji', content: '🎀', x: 88, y: 93, size: 22, rotate: -10 },
     ]
   },
   {
@@ -49,6 +77,35 @@ const FRAMES = [
       { type: 'text', content: 'cute day~', x: 50, y: 5, size: 13, rotate: -4, font: "'Space Grotesk', sans-serif", color: '#1f5c3b', align: 'center', weight: '700' },
     ]
   },
+  {
+    id: 'lavender-haze', label: '💜 Lavender Haze',
+    bg: '#e0aaff', accent: '#9d4edd', text: '#3c096c', pattern: 'dots',
+    decorations: [
+      { type: 'emoji', content: '🌸', x: 12, y: 5,  size: 24, rotate: -10 },
+      { type: 'emoji', content: '💜', x: 88, y: 5,  size: 22, rotate: 10 },
+      { type: 'text', content: '✦ dreamy ✦', x: 50, y: 95, size: 12, rotate: 0, font: "'Space Grotesk', sans-serif", color: '#3c096c', align: 'center', weight: '700' },
+    ]
+  },
+  {
+    id: 'baby-blue', label: '🩵 Baby Blue Cloud',
+    bg: '#c8e6ff', accent: '#4da6ff', text: '#1a4a6e', pattern: 'dots',
+    decorations: [
+      { type: 'emoji', content: '⛅', x: 12, y: 5,  size: 24, rotate: 0 },
+      { type: 'emoji', content: '🌈', x: 88, y: 5,  size: 22, rotate: 10 },
+      { type: 'text', content: '☁ cloud nine ☁', x: 50, y: 95, size: 11, rotate: 0, font: "'Space Grotesk', sans-serif", color: '#1a4a6e', align: 'center', weight: '700' },
+    ]
+  },
+  {
+    id: 'peach-fuzz', label: '🍑 Peach Fuzz',
+    bg: '#ffddd2', accent: '#ff9a7b', text: '#7a3b2e', pattern: null,
+    decorations: [
+      { type: 'emoji', content: '🍑', x: 88, y: 5,  size: 24, rotate: 10 },
+      { type: 'emoji', content: '🌻', x: 12, y: 93, size: 22, rotate: -8 },
+      { type: 'text', content: 'warm & cozy', x: 50, y: 95, size: 11, rotate: 0, font: "'Space Grotesk', sans-serif", color: '#7a3b2e', align: 'center', weight: '700' },
+    ]
+  },
+
+  // ———— BOLD / Y2K / RETRO ————
   {
     id: 'y2k-pop', label: '💚 Y2K Neon Pop',
     bg: '#caff4d', accent: '#ff66b2', text: '#111111', pattern: 'stripes-y2k',
@@ -65,12 +122,65 @@ const FRAMES = [
     ]
   },
   {
+    id: 'disco-fever', label: '🪩 Disco Fever',
+    bg: '#1a0533', accent: '#ff66ff', text: '#ff66ff', pattern: 'checkers',
+    decorations: [
+      { type: 'emoji', content: '🪩', x: 12, y: 5,  size: 24, rotate: 0 },
+      { type: 'emoji', content: '⚡', x: 88, y: 5,  size: 22, rotate: 15 },
+      { type: 'sticker', content: 'DISCO ✦', x: 50, y: 6, size: 11, rotate: -3 },
+    ]
+  },
+  {
+    id: 'bubblegum', label: '🍬 Bubblegum',
+    bg: '#ff87c3', accent: '#fff', text: '#7a0040', pattern: 'checker-pink',
+    decorations: [
+      { type: 'emoji', content: '🍬', x: 12, y: 5,  size: 24, rotate: -10 },
+      { type: 'emoji', content: '🌟', x: 88, y: 5,  size: 22, rotate: 10 },
+      { type: 'sticker', content: 'SWEET!', x: 50, y: 94, size: 13, rotate: 2 },
+    ]
+  },
+  {
+    id: 'kodak-grain', label: '📷 Kodak Grain',
+    bg: '#f5e6c8', accent: '#c8a04a', text: '#5c3d11', pattern: 'grain',
+    decorations: [
+      { type: 'sticker', content: 'KODAK 400', x: 50, y: 4, size: 11, rotate: 0 },
+      { type: 'text', content: '✦ PHOTO ✦', x: 50, y: 96, size: 11, rotate: 0, font: "'Space Grotesk', sans-serif", color: '#5c3d11', align: 'center', weight: '700' },
+    ]
+  },
+
+  // ———— DARK / NIGHT ————
+  {
     id: 'midnight-neon', label: '🌌 Midnight Neon',
     bg: '#150f30', accent: '#e056fd', text: '#e056fd', pattern: 'stars',
     decorations: [
       { type: 'emoji', content: '✨', x: 12, y: 5,  size: 22, rotate: 0 },
       { type: 'emoji', content: '🌙', x: 88, y: 5,  size: 24, rotate: -10 },
       { type: 'emoji', content: '💫', x: 12, y: 93, size: 20, rotate: 8 },
+    ]
+  },
+  {
+    id: 'obsidian', label: '🖤 Obsidian',
+    bg: '#0a0a0a', accent: '#e0e0e0', text: '#e0e0e0', pattern: null,
+    decorations: [
+      { type: 'text', content: '— SNAPGLOW —', x: 50, y: 4, size: 11, rotate: 0, font: "'Space Grotesk', sans-serif", color: '#555', align: 'center', weight: '700' },
+    ]
+  },
+  {
+    id: 'aurora', label: '🌌 Aurora Borealis',
+    bg: '#021a1a', accent: '#00ffcc', text: '#00ffcc', pattern: 'aurora',
+    decorations: [
+      { type: 'emoji', content: '🌿', x: 12, y: 5,  size: 22, rotate: -8 },
+      { type: 'emoji', content: '⭐', x: 88, y: 5,  size: 20, rotate: 10 },
+      { type: 'text', content: '✦ northern lights ✦', x: 50, y: 95, size: 10, rotate: 0, font: "'Space Grotesk', sans-serif", color: '#00ffcc', align: 'center', weight: '700' },
+    ]
+  },
+  {
+    id: 'city-night', label: '🌃 City Night',
+    bg: '#0b0c1e', accent: '#f9c74f', text: '#f9c74f', pattern: 'crosshatch',
+    decorations: [
+      { type: 'emoji', content: '🌃', x: 12, y: 5,  size: 22, rotate: 0 },
+      { type: 'emoji', content: '✨', x: 88, y: 5,  size: 20, rotate: 15 },
+      { type: 'sticker', content: 'NIGHT OUT', x: 50, y: 94, size: 12, rotate: -2 },
     ]
   },
 ];
@@ -189,11 +299,10 @@ function applyFrameTheme(themeId) {
 }
 
 function appendFramePatternClass(container, frame) {
-  container.classList.remove('pattern-dots', 'pattern-stripes-y2k', 'pattern-stripes-retro', 'pattern-stars');
-  if (frame.pattern === 'dots') container.classList.add('pattern-dots');
-  if (frame.pattern === 'stripes-y2k') container.classList.add('pattern-stripes-y2k');
-  if (frame.pattern === 'stripes-retro') container.classList.add('pattern-stripes-retro');
-  if (frame.pattern === 'stars') container.classList.add('pattern-stars');
+  const ALL = ['pattern-dots','pattern-stripes-y2k','pattern-stripes-retro','pattern-stars',
+               'pattern-checkers','pattern-checker-pink','pattern-grain','pattern-aurora','pattern-crosshatch'];
+  ALL.forEach(c => container.classList.remove(c));
+  if (frame.pattern) container.classList.add('pattern-' + frame.pattern);
 }
 
 function appendFrameDecorations(container, frame) {
@@ -600,6 +709,56 @@ function drawStars(ctx, w, h) {
   }
 }
 
+function drawCheckerboard(ctx, w, h, size, color) {
+  ctx.fillStyle = color;
+  for (let row = 0; row * size < h; row++) {
+    for (let col = 0; col * size < w; col++) {
+      if ((row + col) % 2 === 0) ctx.fillRect(col * size, row * size, size, size);
+    }
+  }
+}
+
+function drawCrosshatch(ctx, w, h, spacing, color) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let y = 0; y <= h; y += spacing) { ctx.moveTo(0, y); ctx.lineTo(w, y); }
+  for (let x = 0; x <= w; x += spacing) { ctx.moveTo(x, 0); ctx.lineTo(x, h); }
+  ctx.stroke();
+}
+
+function drawAurora(ctx, w, h) {
+  const g1 = ctx.createLinearGradient(0, 0, 0, h);
+  g1.addColorStop(0,    'rgba(0,255,150,0.12)');
+  g1.addColorStop(0.4,  'rgba(0,200,255,0.08)');
+  g1.addColorStop(0.7,  'rgba(0,0,0,0)');
+  ctx.fillStyle = g1; ctx.fillRect(0, 0, w, h);
+
+  const g2 = ctx.createRadialGradient(w*0.3, h*0.2, 0, w*0.3, h*0.2, w*0.55);
+  g2.addColorStop(0,   'rgba(0,255,180,0.15)');
+  g2.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.fillStyle = g2; ctx.fillRect(0, 0, w, h);
+
+  const g3 = ctx.createRadialGradient(w*0.7, h*0.6, 0, w*0.7, h*0.6, w*0.55);
+  g3.addColorStop(0,   'rgba(80,0,255,0.12)');
+  g3.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.fillStyle = g3; ctx.fillRect(0, 0, w, h);
+}
+
+function drawGrain(ctx, w, h) {
+  // Lightweight pseudo-noise grain on canvas
+  const idata = ctx.createImageData(w, h);
+  const data  = idata.data;
+  let s = 1337;
+  const rng = () => { s ^= s << 13; s ^= s >> 17; s ^= s << 5; return (s >>> 0) / 4294967295; };
+  for (let i = 0; i < data.length; i += 4) {
+    const v = rng() < 0.5 ? 0 : 255;
+    data[i] = data[i+1] = data[i+2] = v;
+    data[i+3] = Math.floor(rng() * 28);
+  }
+  ctx.putImageData(idata, 0, 0);
+}
+
 function drawFramePattern(ctx, frame, w, h, scale) {
   ctx.fillStyle = frame.bg;
   ctx.fillRect(0, 0, w, h);
@@ -616,6 +775,21 @@ function drawFramePattern(ctx, frame, w, h, scale) {
       break;
     case 'stars':
       drawStars(ctx, w, h);
+      break;
+    case 'checkers':
+      drawCheckerboard(ctx, w, h, 18 * scale, 'rgba(255,102,255,0.18)');
+      break;
+    case 'checker-pink':
+      drawCheckerboard(ctx, w, h, 14 * scale, 'rgba(255,255,255,0.25)');
+      break;
+    case 'grain':
+      drawGrain(ctx, w, h);
+      break;
+    case 'aurora':
+      drawAurora(ctx, w, h);
+      break;
+    case 'crosshatch':
+      drawCrosshatch(ctx, w, h, 20 * scale, 'rgba(249,199,79,0.08)');
       break;
     default:
       break;

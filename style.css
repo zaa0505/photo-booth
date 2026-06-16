@@ -378,7 +378,6 @@ body {
   line-height: 1.25;
 }
 
-/* Frame pattern previews (mirrored on canvas + result) */
 .pattern-dots {
   background-image: radial-gradient(circle, rgba(0,0,0,0.18) 1.6px, transparent 1.8px);
   background-size: 16px 16px;
@@ -395,6 +394,30 @@ body {
     radial-gradient(circle, rgba(255,255,255,0.5) 1px, transparent 1.2px);
   background-size: 26px 26px, 14px 14px;
   background-position: 0 0, 8px 10px;
+}
+.pattern-checkers {
+  background-image: repeating-conic-gradient(rgba(255,102,255,0.18) 0% 25%, transparent 0% 50%);
+  background-size: 18px 18px;
+}
+.pattern-checker-pink {
+  background-image: repeating-conic-gradient(rgba(255,255,255,0.25) 0% 25%, transparent 0% 50%);
+  background-size: 14px 14px;
+}
+.pattern-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.12'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+.pattern-aurora {
+  background-image:
+    linear-gradient(180deg, rgba(0,255,150,0.12) 0%, rgba(0,200,255,0.08) 40%, transparent 70%),
+    radial-gradient(ellipse at 30% 20%, rgba(0,255,180,0.15) 0%, transparent 55%),
+    radial-gradient(ellipse at 70% 60%, rgba(80,0,255,0.12) 0%, transparent 55%);
+}
+.pattern-crosshatch {
+  background-image:
+    repeating-linear-gradient(0deg,  rgba(249,199,79,0.08) 0 1px, transparent 1px 20px),
+    repeating-linear-gradient(90deg, rgba(249,199,79,0.08) 0 1px, transparent 1px 20px);
+  background-size: 20px 20px;
 }
 
 /* Progress */
