@@ -420,6 +420,31 @@ body {
   background-size: 20px 20px;
 }
 
+/* Ikon mini "tumpukan kartu Polaroid" di swatch galeri tema */
+.theme-swatch-polaroid::before,
+.theme-swatch-polaroid::after {
+  content: '';
+  position: absolute;
+  background: #ffffff;
+  border-radius: 2px;
+}
+.theme-swatch-polaroid::before {
+  left: 8px;
+  top: 4px;
+  width: 16px;
+  height: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  transform: rotate(-10deg);
+}
+.theme-swatch-polaroid::after {
+  right: 6px;
+  bottom: 4px;
+  width: 18px;
+  height: 22px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.35);
+  transform: rotate(8deg);
+}
+
 /* Progress */
 .progress-box p { font-size: 0.85rem; margin-bottom: 8px; color: var(--text-muted); }
 .progress-box span#currentSlotIdx,
@@ -479,6 +504,37 @@ body {
   font-weight: 700;
   letter-spacing: 1.5px;
   opacity: 0.55;
+}
+
+/* ===== Tema Polaroid Classic: kartu foto miring + cap tanggal digital ===== */
+.photostrip-canvas-mockup.polaroid-mode {
+  gap: 24px;
+  padding-top: 20px;
+}
+.strip-img-wrap { position: relative; }
+.polaroid-card {
+  background: #ffffff;
+  padding: 8px 8px 26px 8px;
+  border-radius: 2px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  transform: rotate(var(--tilt, 0deg));
+  transition: transform 0.2s ease;
+}
+.polaroid-card img.strip-img-item {
+  border-radius: 1px;
+}
+.polaroid-datestamp {
+  position: absolute;
+  right: 16px;
+  bottom: 32px;
+  font-family: 'Courier New', ui-monospace, monospace;
+  font-style: italic;
+  font-weight: 700;
+  font-size: 0.6rem;
+  letter-spacing: 0.5px;
+  color: #ff5b1f;
+  text-shadow: 0 0 5px rgba(255, 91, 31, 0.7);
+  pointer-events: none;
 }
 
 /* Frame decoration stickers placed by theme (emoji / text) */
@@ -613,6 +669,15 @@ body {
     max-width: 520px;
     margin: 0 auto;
   }
+
+  /* Di layout 1 kolom, preview foto jangan punya scroll sendiri (max-height+overflow) —
+     itu bikin ada "scroll di dalam scroll" yang bikin tombol Unduh JPG/PNG & editor
+     sticker di bawahnya kerasa nggak kegapai/ketutup. Biar ngalir & discroll biasa
+     lewat scroll halaman aja. */
+  .strip-preview-area {
+    max-height: none;
+    overflow-y: visible;
+  }
 }
 
 @media (max-width: 480px) {
@@ -632,9 +697,11 @@ body {
   .camera-box {
     width: 100%;
     max-width: 100%;
-    /* Batasi tinggi supaya tidak over-scroll */
-    aspect-ratio: 4/3;
-    max-height: 56vw;
+    /* aspect-ratio 4/3 udah otomatis kepakai dari rule dasar .camera-box di atas.
+       JANGAN tambahin max-height di sini lagi — sebelumnya ada max-height: 56vw yang
+       nabrak sama aspect-ratio 4/3 (butuhnya ~75% lebar, bukan 56%), efeknya kotak
+       kamera ketekan/kepotong pas dibuka di HP asli (baru normal kalau mode desktop,
+       karena breakpoint 480px ini nggak kepake sama sekali di mode itu). */
     margin: 0 auto;
     border-radius: 14px;
   }

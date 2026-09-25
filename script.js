@@ -54,6 +54,18 @@ const FILTERS = [
 // decorations: posisi dalam persen (x/y) relatif ke photostrip
 // ==========================================================================
 const FRAMES = [
+  // ———— TRENDING NOW ————
+  {
+    id: 'polaroid-classic', label: '📸 Polaroid Classic',
+    bg: '#f2e9d8', accent: '#ffffff', text: '#5c4a35', pattern: 'grain',
+    // photoStyle 'polaroid' & dateStamp: dipakai renderMockupStrip() & generateFinalCanvas()
+    // buat kasih tiap foto kartu putih miring + cap tanggal digital ala kamera film.
+    photoStyle: 'polaroid', dateStamp: true,
+    decorations: [
+      { type: 'emoji', content: '🤍', x: 90, y: 5, size: 20, rotate: 10 },
+    ]
+  },
+
   // ———— TERANG / SOFT ————
   {
     id: 'minimal-white', label: '🤍 Minimalist White',
@@ -187,6 +199,8 @@ const FRAMES = [
 
 const getFilter = (id) => FILTERS.find(f => f.id === id) || FILTERS[0];
 const getFrame = (id) => FRAMES.find(f => f.id === id) || FRAMES[0];
+// Sudut miring tiap kartu Polaroid, dipakai bergantian biar kesannya "ditumpuk santai"
+const POLAROID_TILTS = [-2.4, 1.8, -1.5, 2.3, -1.9, 1.6];
 
 // ==========================================================================
 // GLOBAL STATE
@@ -236,6 +250,18 @@ function buildFilterChips() {
   });
 }
 
+const PATTERN_CLASS_MAP = {
+  'dots': 'pattern-dots',
+  'stripes-y2k': 'pattern-stripes-y2k',
+  'stripes-retro': 'pattern-stripes-retro',
+  'stars': 'pattern-stars',
+  'checkers': 'pattern-checkers',
+  'checker-pink': 'pattern-checker-pink',
+  'grain': 'pattern-grain',
+  'aurora': 'pattern-aurora',
+  'crosshatch': 'pattern-crosshatch',
+};
+
 function buildThemeGallery() {
   const wrap = document.getElementById('themeGallery');
   if (!wrap) return;
@@ -248,10 +274,8 @@ function buildThemeGallery() {
     const swatch = document.createElement('div');
     swatch.className = 'theme-swatch';
     swatch.style.backgroundColor = fr.bg;
-    if (fr.pattern === 'dots') swatch.classList.add('pattern-dots');
-    if (fr.pattern === 'stripes-y2k') swatch.classList.add('pattern-stripes-y2k');
-    if (fr.pattern === 'stripes-retro') swatch.classList.add('pattern-stripes-retro');
-    if (fr.pattern === 'stars') swatch.classList.add('pattern-stars');
+    if (fr.pattern && PATTERN_CLASS_MAP[fr.pattern]) swatch.classList.add(PATTERN_CLASS_MAP[fr.pattern]);
+    if (fr.photoStyle === 'polaroid') swatch.classList.add('theme-swatch-polaroid');
 
     const label = document.createElement('span');
     label.className = 'label';
@@ -378,16 +402,41 @@ function renderMockupStrip() {
   container.innerHTML = '';
 
   const frame = getFrame(state.frameTheme);
+  const isPolaroid = frame.photoStyle === 'polaroid';
   container.style.backgroundColor = frame.bg;
   appendFramePatternClass(container, frame);
+  container.classList.toggle('polaroid-mode', isPolaroid);
 
   const bcFilter = getBrightContrastFilter();
-  state.capturedImages.forEach(imgSrc => {
-    const imgEl = document.createElement('img');
-    if (imgSrc) imgEl.src = imgSrc;
-    imgEl.className = 'strip-img-item';
-    imgEl.style.filter = bcFilter;
-    container.appendChild(imgEl);
+  const stampDate = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+  state.capturedImages.forEach((imgSrc, idx) => {
+    if (isPolaroid) {
+      // Tiap foto dibungkus kartu putih miring ala Polaroid asli + cap tanggal digital
+      const wrap = document.createElement('div');
+      wrap.className = 'strip-img-wrap polaroid-card';
+      wrap.style.setProperty('--tilt', POLAROID_TILTS[idx % POLAROID_TILTS.length] + 'deg');
+
+      const imgEl = document.createElement('img');
+      if (imgSrc) imgEl.src = imgSrc;
+      imgEl.className = 'strip-img-item';
+      imgEl.style.filter = bcFilter;
+      wrap.appendChild(imgEl);
+
+      if (frame.dateStamp) {
+        const stamp = document.createElement('span');
+        stamp.className = 'polaroid-datestamp';
+        stamp.textContent = stampDate;
+        wrap.appendChild(stamp);
+      }
+      container.appendChild(wrap);
+    } else {
+      const imgEl = document.createElement('img');
+      if (imgSrc) imgEl.src = imgSrc;
+      imgEl.className = 'strip-img-item';
+      imgEl.style.filter = bcFilter;
+      container.appendChild(imgEl);
+    }
   });
 
   // Hiasan bingkai sesuai tema
@@ -885,6 +934,7 @@ function generateFinalCanvas(format) {
   if (images.length === 0) return;
 
   const frame = getFrame(state.frameTheme);
+  const isPolaroid = frame.photoStyle === 'polaroid';
 
   const originalWidth = 800;
   const originalHeight = 600;
@@ -892,12 +942,21 @@ function generateFinalCanvas(format) {
   const targetImgW = originalWidth * scale;
   const targetImgH = originalHeight * scale;
   const padding = 40 * scale;
-  const gap = 30 * scale;
   const bottomSpace = 130 * scale;
 
+  // Mode Polaroid: jarak antar-strip dilebarin (biar kartu yang dimiringkan nggak tabrakan)
+  // dan tiap foto dikasih bingkai putih tebal (border bawah lebih tebal, ala Polaroid asli).
+  const gap = isPolaroid ? 70 * scale : 30 * scale;
+  const cardSide = isPolaroid ? 26 * scale : 0;
+  const cardTop = isPolaroid ? 26 * scale : 0;
+  const cardBottom = isPolaroid ? 150 * scale : 0;
+
+  const cellW = targetImgW + (cardSide * 2);
+  const cellH = targetImgH + cardTop + cardBottom;
+
   const canvas = document.createElement('canvas');
-  canvas.width = targetImgW + (padding * 2);
-  canvas.height = (targetImgH * images.length) + (gap * (images.length - 1)) + padding + bottomSpace;
+  canvas.width = cellW + (padding * 2);
+  canvas.height = (cellH * images.length) + (gap * (images.length - 1)) + padding + bottomSpace;
   const ctx = canvas.getContext('2d');
 
   // referensi: mockup preview di UI lebar 220px
@@ -912,12 +971,51 @@ function generateFinalCanvas(format) {
   // 3. Foto-foto dengan filter brightness/contrast
   const bVal = document.getElementById('rangeBright') ? document.getElementById('rangeBright').value : 100;
   const cVal = document.getElementById('rangeContrast') ? document.getElementById('rangeContrast').value : 100;
+  const stampDate = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
   images.forEach((img, index) => {
-    const currentY = padding + (index * (targetImgH + gap));
+    const cellX = padding;
+    const cellY = padding + (index * (cellH + gap));
+
     ctx.save();
-    ctx.filter = `brightness(${bVal}%) contrast(${cVal}%)`;
-    ctx.drawImage(img, padding, currentY, targetImgW, targetImgH);
+    if (isPolaroid) {
+      const angle = POLAROID_TILTS[index % POLAROID_TILTS.length];
+      ctx.translate(cellX + cellW / 2, cellY + cellH / 2);
+      ctx.rotate((angle * Math.PI) / 180);
+      ctx.translate(-cellW / 2, -cellH / 2);
+
+      // Kartu putih Polaroid dengan bayangan halus (di-scope sendiri biar shadow-nya
+      // nggak ikut nempel ke foto di dalamnya)
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.35)';
+      ctx.shadowBlur = 20 * scale;
+      ctx.shadowOffsetY = 10 * scale;
+      ctx.fillStyle = '#ffffff';
+      roundRectPath(ctx, 0, 0, cellW, cellH, 4 * scale);
+      ctx.fill();
+      ctx.restore();
+
+      // Foto di dalam kartu
+      ctx.filter = `brightness(${bVal}%) contrast(${cVal}%)`;
+      ctx.drawImage(img, cardSide, cardTop, targetImgW, targetImgH);
+      ctx.filter = 'none';
+
+      // Cap tanggal digital oranye ala kamera film jadul, pojok kanan-bawah tiap foto
+      if (frame.dateStamp) {
+        const fontSize = 16 * scale;
+        ctx.font = `italic 700 ${fontSize}px 'Courier New', monospace`;
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'alphabetic';
+        ctx.shadowColor = 'rgba(255,91,31,0.75)';
+        ctx.shadowBlur = 6 * scale;
+        ctx.fillStyle = 'rgba(255,91,31,0.95)';
+        ctx.fillText(stampDate, cardSide + targetImgW - (10 * scale), cardTop + targetImgH - (12 * scale));
+        ctx.shadowBlur = 0;
+      }
+    } else {
+      ctx.filter = `brightness(${bVal}%) contrast(${cVal}%)`;
+      ctx.drawImage(img, cellX, cellY, targetImgW, targetImgH);
+    }
     ctx.restore();
   });
 
