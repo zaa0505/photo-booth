@@ -656,97 +656,102 @@ body {
 /* Ripple feedback */
 .ripple { position: relative; overflow: hidden; }
 
-/* ===== RESPONSIVE ===== */
-@media (max-width: 868px) {
-  .booth-layout, .result-layout { grid-template-columns: 1fr; }
-  .app-header { padding: 15px 4%; }
-  .step-card { padding: 20px; }
-  .theme-gallery { grid-template-columns: repeat(2, 1fr); }
+/* ===== RESPONSIVE =====
+   3 tingkatan device: Desktop (default di atas, tanpa media query, >1024px)
+   → Tablet (≤1024px: kamera & sidebar tetap 2 kolom, cuma diringkas)
+   → Handphone (≤640px: ditumpuk 1 kolom)
+   → penyesuaian tambahan buat HP paling kecil (≤380px). */
 
-  /* Kamera tetap proporsional di tablet */
-  .camera-box {
-    width: 100%;
-    max-width: 520px;
-    margin: 0 auto;
+/* ---- TABLET (potret ±768-1024px, lanskap HP juga kena di sini): kamera & sidebar
+   tetap 2 kolom kayak desktop, cuma sidebar-nya dipersempit jadi 280px biar muat
+   nyaman. Angka 280px dipilih supaya kolom kamera di sebelahnya nggak pernah
+   kesempitan di lebar tablet manapun (sudah dihitung dari 641px sampai 1024px). ---- */
+@media (max-width: 1024px) {
+  .main-container { margin: 24px auto; padding: 0 16px 50px; }
+  .app-header { padding: 16px 4%; }
+  .step-card { padding: 24px; }
+  .section-title { margin-bottom: 24px; }
+  .section-title h2 { font-size: 1.6rem; }
+
+  .booth-layout, .result-layout {
+    grid-template-columns: 1fr 280px;
+    gap: 20px;
   }
 
-  /* Di layout 1 kolom, preview foto jangan punya scroll sendiri (max-height+overflow) —
-     itu bikin ada "scroll di dalam scroll" yang bikin tombol Unduh JPG/PNG & editor
-     sticker di bawahnya kerasa nggak kegapai/ketutup. Biar ngalir & discroll biasa
-     lewat scroll halaman aja. */
-  .strip-preview-area {
-    max-height: none;
-    overflow-y: visible;
-  }
+  /* Lebar kamera udah otomatis diatur kolom grid-nya, nggak perlu max-width lagi */
+  .camera-box { width: 100%; }
+
+  .booth-sidebar, .editor-sidebar { gap: 16px; }
+  .sidebar-block { padding: 16px; }
+
+  /* Sidebar lebih sempit (280px) — tombol Unduh JPG/PNG ditumpuk biar nggak dempet */
+  .action-footer { flex-direction: column; gap: 10px; }
+
+  .countdown-display { font-size: 5rem; }
 }
 
-@media (max-width: 480px) {
+/* ---- HANDPHONE (potret, ≤640px): semua ditumpuk jadi 1 kolom ---- */
+@media (max-width: 640px) {
+  .main-container { margin: 16px auto; padding: 0 12px 40px; }
   .brand h1 { font-size: 1.25rem; }
-  .frame-grid { grid-template-columns: 1fr; gap: 15px; }
-  .action-footer { flex-direction: column; gap: 10px; }
-  .photostrip-canvas-mockup { width: 70vw; max-width: 260px; }
-  .countdown-display { font-size: 4.5rem; }
-
-  /* Booth layout mobile: kamera compact & centered */
+  .section-title { margin-bottom: 20px; }
+  .section-title h2 { font-size: 1.35rem; }
+  .section-title p { font-size: 0.85rem; }
   .step-card { padding: 16px 14px; }
 
-  .booth-layout {
-    gap: 16px;
-  }
+  .frame-grid { grid-template-columns: 1fr; gap: 15px; }
+  .photostrip-canvas-mockup { width: 70vw; max-width: 260px; }
+
+  .booth-layout, .result-layout { grid-template-columns: 1fr; gap: 16px; }
 
   .camera-box {
     width: 100%;
     max-width: 100%;
     /* aspect-ratio 4/3 udah otomatis kepakai dari rule dasar .camera-box di atas.
        JANGAN tambahin max-height di sini lagi — sebelumnya ada max-height: 56vw yang
-       nabrak sama aspect-ratio 4/3 (butuhnya ~75% lebar, bukan 56%), efeknya kotak
-       kamera ketekan/kepotong pas dibuka di HP asli (baru normal kalau mode desktop,
-       karena breakpoint 480px ini nggak kepake sama sekali di mode itu). */
+       nabrak sama aspect-ratio 4/3 (butuhnya ~75% lebar, bukan 56%), efeknya kamera
+       ketekan/kepotong pas dibuka di HP asli. */
     margin: 0 auto;
     border-radius: 14px;
   }
+  .live-frame-overlay { border-width: 10px; }
+  #videoFeed { width: 100%; height: 100%; object-fit: cover; }
+  .countdown-display { font-size: 3.8rem; }
 
-  #videoFeed {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
+  .booth-sidebar, .editor-sidebar { gap: 12px; }
+  .sidebar-block { padding: 14px 12px; }
 
-  /* Overlay countdown lebih kecil di mobile */
-  .countdown-display {
-    font-size: 3.8rem;
-  }
+  .filter-chip .swatch { width: 44px; height: 44px; border-radius: 12px; }
+  .filter-chip { width: 54px; }
 
-  /* Sidebar nempel rapat di bawah kamera */
-  .booth-sidebar {
-    gap: 12px;
-  }
+  .theme-gallery { gap: 8px; }
+  .theme-swatch { height: 36px; }
 
-  .sidebar-block {
-    padding: 14px 12px;
-  }
+  .action-footer { flex-direction: column; gap: 10px; }
+  .btn-shutter { padding: 14px 16px; font-size: 0.95rem; }
 
-  /* Filter chips lebih kompak */
-  .filter-chip .swatch {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
+  /* Preview foto di layar review nggak usah punya scroll sendiri (max-height+overflow) —
+     di layout 1 kolom ini bikin scroll dalam-luar rebutan, tombol Unduh JPG/PNG &
+     editor stiker di bawahnya jadi kerasa nggak kegapai/ketutup. Biar ngalir aja,
+     tinggal discroll lewat halaman biasa. */
+  .strip-preview-area {
+    max-height: none;
+    overflow-y: visible;
+    padding: 20px 8px;
   }
-  .filter-chip {
-    width: 54px;
-  }
+}
 
-  /* Theme gallery 2 kolom tetap tapi lebih compact */
-  .theme-gallery {
-    gap: 8px;
-  }
-  .theme-swatch {
-    height: 36px;
-  }
-
-  /* Tombol shutter full width & mudah dijangkau */
-  .btn-shutter {
-    padding: 14px 16px;
-    font-size: 0.95rem;
-  }
+/* ---- HANDPHONE KECIL (≤380px, HP layar sempit kayak iPhone SE/Android lama):
+   rapatin dikit lagi biar semua elemen tetap nyaman kepencet & kebaca ---- */
+@media (max-width: 380px) {
+  .brand h1 { font-size: 1.1rem; }
+  .logo-icon { font-size: 1.15rem; }
+  .badge { font-size: 0.68rem; padding: 3px 8px; }
+  .section-title h2 { font-size: 1.2rem; }
+  .step-card { padding: 14px 10px; }
+  .countdown-display { font-size: 3.2rem; }
+  .filter-chip { width: 50px; }
+  .filter-chip .swatch { width: 40px; height: 40px; }
+  .sticker-item { padding: 7px 10px; font-size: 1rem; }
+  .btn { padding: 12px 20px; font-size: 0.92rem; }
 }
